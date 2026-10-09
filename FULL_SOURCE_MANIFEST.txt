@@ -1,0 +1,42 @@
+Laravel ERP System — Steps 1–14 Final Fix/QA Source Package
+
+Included roadmap:
+1. Laravel foundation/authentication
+2. Users, roles, permissions
+3. Customers, suppliers, groups, ledgers
+4. Products, units, categories, brands, SKU/barcode
+5. Warehouses, inventory, stock ledger, opening/adjustment/transfer
+6. Purchases and purchase returns
+7. Sales, sales returns, quotations
+8. Customer and supplier payments
+9. Expense management
+10. Employees and payroll
+11. Double-entry accounting / chart of accounts / journals
+12. Business and financial reports
+13. Modern dashboard KPIs/charts
+14. Audit log, notifications, settings, security/tests
+
+Final QA additions:
+- Employee + Add Employee UI/RBAC correction
+- dashboard.view authorization
+- Balance Sheet cumulative earnings correction
+- Sales/Purchase Return source and remaining-quantity protection
+- Customer/Supplier/Payroll payment account guards
+- Expense account guards
+- Settings behavior wiring and validation
+- Permission seeder/database synchronization
+- Expanded regression test suite
+
+Database:
+- database/erp_system.sql — MySQL/MariaDB complete schema + sample data
+- database/database.sqlite — populated SQLite demo database
+
+Default development login:
+admin@example.com / ChangeMe123!
+
+Final verification target:
+- 130 permissions
+- 9 standard roles with dashboard.view
+- SQLite foreign-key violations: 0
+- Balance Sheet difference with supplied sample data: 0.00
+- Regression test methods: 22

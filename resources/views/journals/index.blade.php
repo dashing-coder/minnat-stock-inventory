@@ -1,0 +1,4 @@
+@extends('layouts.app')
+@section('title',__('Journals')) @section('heading',__('Journal Entries'))
+@section('actions')@can('journals.create')<a href="{{ route('journals.create') }}" class="btn btn-primary">{{ __('Manual Journal') }}</a>@endcan @endsection
+@section('content')<div class="card"><div class="table-responsive"><table class="table mb-0"><thead><tr><th>{{ __('Date') }}</th><th>{{ __('Journal') }}</th><th>{{ __('Type') }}</th><th>{{ __('Reference') }}</th><th>{{ __('Description') }}</th></tr></thead><tbody>@forelse($rows as $r)<tr><td>{{ $r->journal_date->format('Y-m-d') }}</td><td><a href="{{ route('journals.show',$r) }}">{{ $r->journal_no }}</a></td><td>{{ $r->reference_type }}</td><td>{{ $r->reference_no }}</td><td>{{ $r->description }}</td></tr>@empty<tr><td colspan="5">{{ __('No journals.') }}</td></tr>@endforelse</tbody></table></div></div>{{ $rows->links() }}@endsection

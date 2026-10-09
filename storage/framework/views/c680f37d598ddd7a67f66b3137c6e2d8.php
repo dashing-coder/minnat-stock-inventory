@@ -1,0 +1,18 @@
+<?php $__env->startSection('title','Current Stock'); ?> <?php $__env->startSection('heading','Current Stock'); ?>
+<?php $__env->startSection('content'); ?>
+<div class="card"><div class="card-body">
+<form class="row g-2 mb-3">
+<div class="col-md-3"><select class="form-select" name="warehouse"><option value="">All Warehouses</option><?php $__currentLoopData = $warehouses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $x): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($x->id); ?>" <?php if(request('warehouse')==$x->id): echo 'selected'; endif; ?>><?php echo e($x->name); ?></option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?></select></div>
+<div class="col-md-3"><select class="form-select" name="category"><option value="">All Categories</option><?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $x): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($x->id); ?>" <?php if(request('category')==$x->id): echo 'selected'; endif; ?>><?php echo e($x->name); ?></option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?></select></div>
+<div class="col-md-2"><select class="form-select" name="brand"><option value="">All Brands</option><?php $__currentLoopData = $brands; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $x): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($x->id); ?>" <?php if(request('brand')==$x->id): echo 'selected'; endif; ?>><?php echo e($x->name); ?></option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?></select></div>
+<div class="col-md-2"><select class="form-select" name="stock_status"><option value="">All Stock</option><option value="out" <?php if(request('stock_status')==='out'): echo 'selected'; endif; ?>>Out of Stock</option><option value="negative" <?php if(request('stock_status')==='negative'): echo 'selected'; endif; ?>>Negative</option></select></div>
+<div class="col"><button class="btn btn-outline-primary">Filter</button></div>
+</form>
+<div class="table-responsive"><table class="table align-middle"><thead><tr><th>Warehouse</th><th>Code</th><th>Product</th><th>Category</th><th>Unit</th><th class="text-end">On Hand</th><th class="text-end">Reserved</th><th class="text-end">Available</th></tr></thead><tbody>
+<?php $__empty_1 = true; $__currentLoopData = $stocks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?><tr><td><?php echo e($s->warehouse->name); ?></td><td><?php echo e($s->product->code); ?></td><td><?php echo e($s->product->name); ?></td><td><?php echo e($s->product->category?->name); ?></td><td><?php echo e($s->product->unit?->short_name); ?></td><td class="text-end"><?php echo e(number_format((float)$s->quantity,4)); ?></td><td class="text-end"><?php echo e(number_format((float)$s->reserved_quantity,4)); ?></td><td class="text-end"><?php echo e(number_format($s->available_quantity,4)); ?></td></tr>
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?><tr><td colspan="8">No warehouse stock records yet. Post an opening stock adjustment.</td></tr><?php endif; ?></tbody></table></div><?php echo e($stocks->links()); ?>
+
+</div></div>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\xampp\htdocs\erp-system\resources\views/inventory/index.blade.php ENDPATH**/ ?>

@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Enums;
+
+enum StockMovementType: string
+{
+    case OPENING = 'opening';
+    case PURCHASE = 'purchase';
+    case PURCHASE_RETURN = 'purchase_return';
+    case SALE = 'sale';
+    case SALE_RETURN = 'sale_return';
+    case ADJUSTMENT_IN = 'adjustment_in';
+    case ADJUSTMENT_OUT = 'adjustment_out';
+    case TRANSFER_IN = 'transfer_in';
+    case TRANSFER_OUT = 'transfer_out';
+}

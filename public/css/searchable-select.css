@@ -1,0 +1,159 @@
+.erp-search-select {
+    position: relative;
+    width: 100%;
+}
+
+.erp-search-select__native {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.erp-search-select__toggle {
+    width: 100%;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    text-align: left;
+    background: #fff;
+    border: 1px solid #d5deea;
+    border-radius: .5rem;
+    padding: .45rem .75rem;
+    color: #111827;
+    font: inherit;
+    line-height: 1.5;
+}
+
+.erp-search-select__toggle:hover,
+.erp-search-select__toggle:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .12);
+}
+
+.erp-search-select__toggle-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.erp-search-select__caret {
+    flex: 0 0 auto;
+    color: #64748b;
+    font-size: .75rem;
+}
+
+.erp-search-select__menu {
+    position: fixed;
+    z-index: 2000;
+    display: none;
+    background: #fff;
+    border: 1px solid #d5deea;
+    border-radius: .55rem;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .16);
+    overflow: hidden;
+}
+
+.erp-search-select__menu.open {
+    display: block;
+}
+
+.erp-search-select__search-wrap {
+    padding: .55rem;
+    border-bottom: 1px solid #edf1f6;
+    background: #f8fafc;
+}
+
+.erp-search-select__search {
+    width: 100%;
+    border: 1px solid #d5deea;
+    border-radius: .45rem;
+    padding: .5rem .65rem;
+    font: inherit;
+    outline: none;
+}
+
+.erp-search-select__search:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 .18rem rgba(13, 110, 253, .10);
+}
+
+.erp-search-select__options {
+    max-height: 260px;
+    overflow-y: auto;
+    padding: .25rem;
+}
+
+.erp-search-select__option {
+    width: 100%;
+    display: block;
+    border: 0;
+    background: transparent;
+    border-radius: .4rem;
+    padding: .5rem .65rem;
+    text-align: left;
+    color: #1f2937;
+    font: inherit;
+    line-height: 1.35;
+    cursor: pointer;
+}
+
+.erp-search-select__option:hover,
+.erp-search-select__option:focus {
+    background: #eff6ff;
+    color: #0d6efd;
+    outline: 0;
+}
+
+.erp-search-select__option.active {
+    background: #e7f0ff;
+    color: #0b5ed7;
+    font-weight: 600;
+}
+
+.erp-search-select__empty {
+    padding: .85rem .75rem;
+    text-align: center;
+    color: #64748b;
+    font-size: .875rem;
+}
+
+.erp-search-select.is-disabled .erp-search-select__toggle {
+    background: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.erp-search-select.has-error .erp-search-select__toggle {
+    border-color: #dc3545;
+}
+
+@media (max-width: 575.98px) {
+    .erp-search-select__options {
+        max-height: 220px;
+    }
+}
+
+/*
+ * Defensive duplicate protection.
+ * If a stale/legacy script wraps an already-enhanced field, never show two
+ * Customer/Product controls while JavaScript repairs the nesting.
+ */
+.erp-search-select:has(> .erp-search-select) > .erp-search-select__toggle {
+    display: none !important;
+}
+
+.erp-search-select[data-afrin-search="v5"] > .erp-search-select:not([data-afrin-search="v5"]) > .erp-search-select__toggle {
+    display: none !important;
+}

@@ -1,0 +1,11 @@
+@extends('layouts.app')
+@section('title','Roles') @section('heading','Roles & Permissions')
+@section('actions') @can('roles.create')<a class="btn btn-primary" href="{{ route('roles.create') }}">Add Role</a>@endcan @endsection
+@section('content')
+<div class="card"><div class="card-body"><div class="table-responsive"><table class="table align-middle">
+<thead><tr><th>Role</th><th>Permissions</th><th></th></tr></thead><tbody>
+@foreach($roles as $role)<tr><td>{{ $role->name }}</td><td>{{ $role->permissions_count }}</td><td class="text-end">
+@if($role->name!=='Super Admin') @can('roles.edit')<a class="btn btn-sm btn-outline-secondary" href="{{ route('roles.edit',$role) }}">Edit</a>@endcan
+@can('roles.delete')<form class="d-inline" method="POST" action="{{ route('roles.destroy',$role) }}" onsubmit="return confirm('Delete role?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">Delete</button></form>@endcan @endif
+</td></tr>@endforeach</tbody></table></div>{{ $roles->links() }}</div></div>
+@endsection

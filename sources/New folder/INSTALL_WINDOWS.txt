@@ -1,0 +1,15 @@
+WINDOWS INSTALL (existing Step 1-14 project)
+===========================================
+
+1. Make a backup of your project.
+2. Extract laravel-erp-modern-dashboard-replacement.zip.
+3. Copy the extracted app, resources and public folders into your Laravel project.
+4. Choose Merge/Replace when Windows asks.
+5. Open a terminal in the Laravel project and run:
+
+   php artisan optimize:clear
+   php artisan permission:cache-reset
+
+6. Reload the dashboard using Ctrl+F5.
+
+If the sidebar is hidden by permissions, verify the logged-in account has the Super Admin role.

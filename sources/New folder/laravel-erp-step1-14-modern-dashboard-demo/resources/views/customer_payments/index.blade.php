@@ -1,0 +1,4 @@
+@extends('layouts.app')
+@section('title','Customer Receipts') @section('heading','Customer Receipts')
+@section('actions')@can('customer_payments.create')<a href="{{ route('customer-payments.create') }}" class="btn btn-primary">Receive Payment</a>@endcan@endsection
+@section('content')<div class="card"><table class="table mb-0"><thead><tr><th>Date</th><th>No</th><th>Customer</th><th>Invoice</th><th>Account</th><th>Method</th><th class="money">Amount</th></tr></thead><tbody>@forelse($rows as $r)<tr><td>{{ $r->payment_date->format('Y-m-d') }}</td><td>{{ $r->payment_no }}</td><td>{{ $r->customer->name }}</td><td>{{ $r->sale?->invoice_no }}</td><td>{{ $r->account->name }}</td><td>{{ $r->method }}</td><td class="money">{{ number_format($r->amount,2) }}</td></tr>@empty<tr><td colspan="7">No receipts.</td></tr>@endforelse</tbody></table></div>{{ $rows->links() }}@endsection

@@ -1,0 +1,3 @@
+@extends('layouts.app')
+@section('title','Generate Payroll') @section('heading','Generate Payroll')
+@section('content')<form method="POST" action="{{ route('payrolls.store') }}" class="card card-body">@csrf<div class="row g-3"><div class="col-md-4"><label>Period</label><input type="month" name="period" value="{{ now()->format('Y-m') }}" class="form-control" required></div><div class="col-md-4"><label>Pay Date</label><input type="date" name="pay_date" class="form-control"></div><div class="col-md-4"><label>Notes</label><input name="notes" class="form-control"></div></div><div class="mt-3"><button class="btn btn-primary">Generate From Active Employees</button></div></form>@endsection

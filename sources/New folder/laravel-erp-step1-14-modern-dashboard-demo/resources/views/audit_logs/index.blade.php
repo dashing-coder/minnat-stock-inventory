@@ -1,0 +1,3 @@
+@extends('layouts.app')
+@section('title','Audit Log') @section('heading','Audit Log')
+@section('content')<div class="card"><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Route</th><th>IP</th><th>Payload</th></tr></thead><tbody>@forelse($rows as $r)<tr><td>{{ $r->created_at }}</td><td>{{ $r->user?->name }}</td><td>{{ $r->method }}</td><td>{{ $r->route_name }}</td><td>{{ $r->ip_address }}</td><td><code>{{ \Illuminate\Support\Str::limit(json_encode($r->payload),120) }}</code></td></tr>@empty<tr><td colspan="6">No audit records.</td></tr>@endforelse</tbody></table></div></div>{{ $rows->links() }}@endsection

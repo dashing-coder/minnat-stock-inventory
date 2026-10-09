@@ -1,0 +1,4 @@
+@extends('layouts.app')
+@section('title','Quotations') @section('heading','Quotations')
+@section('actions')@can('quotations.create')<a class="btn btn-primary" href="{{ route('quotations.create') }}">New Quotation</a>@endcan@endsection
+@section('content')<div class="card"><table class="table mb-0"><thead><tr><th>Date</th><th>No</th><th>Customer</th><th>Valid Until</th><th>Status</th><th class="money">Total</th></tr></thead><tbody>@forelse($rows as $r)<tr><td>{{ $r->quotation_date->format('Y-m-d') }}</td><td><a href="{{ route('quotations.show',$r) }}">{{ $r->quotation_no }}</a></td><td>{{ $r->customer?->name ?? 'Walk-in' }}</td><td>{{ $r->valid_until?->format('Y-m-d') }}</td><td>{{ $r->status }}</td><td class="money">{{ number_format($r->grand_total,2) }}</td></tr>@empty<tr><td colspan="6">No quotations.</td></tr>@endforelse</tbody></table></div>{{ $rows->links() }}@endsection

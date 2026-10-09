@@ -1,0 +1,22 @@
+## ======================================================================== 
+    How to Reset Username & Password 
+======================================================================== ##
+
+If you have Terminal/SSH
+From the Laravel project directory:
+
+php artisan tinker
+Hash::make('AfriN@2026')
+
+You will get something similar to:
+"$2y$12$........................................................."
+
+Then go to phpMyAdmin → your ERP database → SQL and run:
+
+UPDATE users
+SET password = '\$2y\$12\$7ZYtim.YVP3D0SyGSqAfG.RwAsg06uFX8QrBVrAO/vvOvmgT1OF2C'
+WHERE email = 'admin@example.com';
+
+UPDATE users
+SET email = 'iamdashingcoder@gmail.com'
+WHERE email = 'admin@example.com';

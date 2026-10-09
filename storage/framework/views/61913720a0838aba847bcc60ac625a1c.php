@@ -1,0 +1,37 @@
+<?php $__env->startSection('title',$product->exists?__('Edit Product'):__('Add Product')); ?> <?php $__env->startSection('heading',$product->exists?__('Edit Product'):__('Add Product')); ?>
+<?php $__env->startSection('content'); ?>
+<form method="POST" enctype="multipart/form-data" action="<?php echo e($product->exists ? route('products.update',$product) : route('products.store')); ?>">
+<?php echo csrf_field(); ?> <?php if($product->exists): ?><?php echo method_field('PUT'); ?><?php endif; ?>
+<div class="card mb-3"><div class="card-header"><?php echo e(__('Basic Information')); ?></div><div class="card-body"><div class="row g-3">
+<div class="col-md-6"><label class="form-label required"><?php echo e(__('Product Name')); ?></label><input class="form-control" name="name" value="<?php echo e(old('name',$product->name)); ?>" required></div>
+<div class="col-md-3"><label class="form-label required"><?php echo e(__('SKU')); ?></label><input class="form-control" name="sku" value="<?php echo e(old('sku',$product->sku)); ?>" required></div>
+<div class="col-md-3"><label class="form-label"><?php echo e(__('Barcode')); ?></label><input class="form-control" name="barcode" value="<?php echo e(old('barcode',$product->barcode)); ?>"></div>
+<div class="col-md-4"><label class="form-label"><?php echo e(__('Category')); ?></label><select class="form-select" name="category_id"><option value=""><?php echo e(__('None')); ?></option><?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $x): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($x->id); ?>" <?php if(old('category_id',$product->category_id)==$x->id): echo 'selected'; endif; ?>><?php echo e($x->name); ?></option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?></select></div>
+<div class="col-md-4"><label class="form-label"><?php echo e(__('Brand')); ?></label><select class="form-select" name="brand_id"><option value=""><?php echo e(__('None')); ?></option><?php $__currentLoopData = $brands; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $x): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($x->id); ?>" <?php if(old('brand_id',$product->brand_id)==$x->id): echo 'selected'; endif; ?>><?php echo e($x->name); ?></option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?></select></div>
+<div class="col-md-4"><label class="form-label required"><?php echo e(__('Unit')); ?></label><select class="form-select" name="unit_id" required><?php $__currentLoopData = $units; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $x): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($x->id); ?>" <?php if(old('unit_id',$product->unit_id)==$x->id): echo 'selected'; endif; ?>><?php echo e($x->name); ?> (<?php echo e($x->short_name); ?>)</option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?></select></div>
+</div></div></div>
+
+<div class="card mb-3"><div class="card-header"><?php echo e(__('Pricing')); ?></div><div class="card-body"><div class="row g-3">
+<?php $__currentLoopData = [
+['purchase_price','Purchase Price'],['selling_price','Selling Price'],['wholesale_price','Wholesale Price'],['minimum_selling_price','Minimum Selling Price']
+]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $f): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+<div class="col-md-3"><label class="form-label <?php echo e(in_array($f[0],['purchase_price','selling_price'])?'required':''); ?>"><?php echo e($f[1]); ?></label><input class="form-control" type="number" step=".01" min="0" name="<?php echo e($f[0]); ?>" value="<?php echo e(old($f[0],$product->{$f[0]} ?? 0)); ?>" <?php echo e(in_array($f[0],['purchase_price','selling_price'])?'required':''); ?>></div>
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+<div class="col-md-3"><label class="form-label"><?php echo e(__('Tax Rate %')); ?></label><input class="form-control" type="number" step=".0001" min="0" max="100" name="tax_rate" value="<?php echo e(old('tax_rate',$product->tax_rate??0)); ?>"></div>
+</div></div></div>
+
+<div class="card mb-3"><div class="card-header"><?php echo e(__('Inventory Configuration')); ?></div><div class="card-body"><div class="row g-3">
+<div class="col-md-3"><label class="form-label"><?php echo e(__('Reorder Level')); ?></label><input class="form-control" type="number" step=".0001" min="0" name="reorder_level" value="<?php echo e(old('reorder_level',$product->reorder_level??0)); ?>"></div>
+<div class="col-md-3"><label class="form-label"><?php echo e(__('Minimum Stock')); ?></label><input class="form-control" type="number" step=".0001" min="0" name="minimum_stock_level" value="<?php echo e(old('minimum_stock_level',$product->minimum_stock_level??0)); ?>"></div>
+<div class="col-md-3"><label class="form-label"><?php echo e(__('Maximum Stock')); ?></label><input class="form-control" type="number" step=".0001" min="0" name="maximum_stock_level" value="<?php echo e(old('maximum_stock_level',$product->maximum_stock_level)); ?>"></div>
+<div class="col-md-3"><label class="form-label"><?php echo e(__('Track Stock')); ?></label><select class="form-select" name="track_stock"><option value="1" <?php if(old('track_stock',$product->exists?$product->track_stock:1)==1): echo 'selected'; endif; ?>><?php echo e(__('Yes')); ?></option><option value="0" <?php if(old('track_stock',$product->exists?$product->track_stock:1)==0): echo 'selected'; endif; ?>><?php echo e(__('No')); ?></option></select></div>
+<div class="col-md-3"><label class="form-label"><?php echo e(__('Allow Negative Stock')); ?></label><select class="form-select" name="allow_negative_stock"><option value="0" <?php if(old('allow_negative_stock',$product->allow_negative_stock??0)==0): echo 'selected'; endif; ?>><?php echo e(__('No')); ?></option><option value="1" <?php if(old('allow_negative_stock',$product->allow_negative_stock??0)==1): echo 'selected'; endif; ?>><?php echo e(__('Yes')); ?></option></select></div>
+<div class="col-md-3"><label class="form-label"><?php echo e(__('Status')); ?></label><select class="form-select" name="is_active"><option value="1" <?php if(old('is_active',$product->exists?$product->is_active:1)==1): echo 'selected'; endif; ?>><?php echo e(__('Active')); ?></option><option value="0" <?php if(old('is_active',$product->exists?$product->is_active:1)==0): echo 'selected'; endif; ?>><?php echo e(__('Inactive')); ?></option></select></div>
+<div class="col-md-6"><label class="form-label"><?php echo e(__('Image')); ?></label><input class="form-control" type="file" name="image" accept="image/*"></div>
+<div class="col-12"><label class="form-label"><?php echo e(__('Description')); ?></label><textarea class="form-control" name="description"><?php echo e(old('description',$product->description)); ?></textarea></div>
+</div></div></div>
+<button class="btn btn-primary"><?php echo e(__('Save Product')); ?></button> <a class="btn btn-outline-secondary" href="<?php echo e(route('products.index')); ?>"><?php echo e(__('Cancel')); ?></a>
+</form>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\xampp\htdocs\afrintraders\resources\views/products/form.blade.php ENDPATH**/ ?>

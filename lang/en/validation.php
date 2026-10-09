@@ -1,0 +1,22 @@
+<?php
+return [
+    'accepted' => 'The :attribute field must be accepted.',
+    'boolean' => 'The :attribute field must be true or false.',
+    'date' => 'The :attribute field must be a valid date.',
+    'email' => 'The :attribute field must be a valid email address.',
+    'exists' => 'The selected :attribute is invalid.',
+    'image' => 'The :attribute field must be an image.',
+    'integer' => 'The :attribute field must be an integer.',
+    'max' => ['numeric' => 'The :attribute field must not be greater than :max.', 'string' => 'The :attribute field must not be greater than :max characters.'],
+    'min' => ['numeric' => 'The :attribute field must be at least :min.', 'string' => 'The :attribute field must be at least :min characters.'],
+    'numeric' => 'The :attribute field must be a number.',
+    'required' => 'The :attribute field is required.',
+    'required_if' => 'The :attribute field is required when :other is :value.',
+    'same' => 'The :attribute field must match :other.',
+    'string' => 'The :attribute field must be a string.',
+    'unique' => 'The :attribute has already been taken.',
+    'uploaded' => 'The :attribute failed to upload.',
+    'url' => 'The :attribute field must be a valid URL.',
+    'custom' => [],
+    'attributes' => [],
+];

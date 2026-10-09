@@ -1,0 +1,4 @@
+@extends('layouts.app')
+@section('title','Employees') @section('heading','Employees')
+@section('actions')@can('employees.create')<a href="{{ route('employees.create') }}" class="btn btn-primary">New Employee</a>@endcan@endsection
+@section('content')<div class="card"><table class="table mb-0"><thead><tr><th>No</th><th>Name</th><th>Department</th><th>Designation</th><th class="money">Basic</th><th>Status</th><th></th></tr></thead><tbody>@forelse($rows as $r)<tr><td>{{ $r->employee_no }}</td><td>{{ $r->name }}</td><td>{{ $r->department }}</td><td>{{ $r->designation }}</td><td class="money">{{ number_format($r->basic_salary,2) }}</td><td>{{ $r->is_active?'Active':'Inactive' }}</td><td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('employees.edit',$r) }}">Edit</a></td></tr>@empty<tr><td colspan="7">No employees.</td></tr>@endforelse</tbody></table></div>{{ $rows->links() }}@endsection

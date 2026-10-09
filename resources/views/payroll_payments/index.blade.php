@@ -1,0 +1,4 @@
+@extends('layouts.app')
+@section('title',__('Salary Payments')) @section('heading',__('Salary Payments'))
+@section('actions')<a href="{{ route('payroll-payments.create') }}" class="btn btn-primary">{{ __('Pay Salary') }}</a>@endsection
+@section('content')<div class="card"><div class="table-responsive"><table class="table mb-0"><thead><tr><th>{{ __('Date') }}</th><th>{{ __('No') }}</th><th>{{ __('Employee') }}</th><th>{{ __('Account') }}</th><th>{{ __('Method') }}</th><th class="money">{{ __('Amount') }}</th></tr></thead><tbody>@forelse($rows as $r)<tr><td>{{ $r->payment_date->format('Y-m-d') }}</td><td>{{ $r->payment_no }}</td><td>{{ $r->item->employee->name }}</td><td>{{ $r->paymentAccount->name }}</td><td>{{ __(ucwords(str_replace('_',' ',$r->method))) }}</td><td class="money">{{ number_format($r->amount,2) }}</td></tr>@empty<tr><td colspan="6">{{ __('No salary payments.') }}</td></tr>@endforelse</tbody></table></div></div>{{ $rows->links() }}@endsection

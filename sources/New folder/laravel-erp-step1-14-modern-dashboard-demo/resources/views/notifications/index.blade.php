@@ -1,0 +1,4 @@
+@extends('layouts.app')
+@section('title','Notifications') @section('heading','Notifications')
+@section('actions')<form method="POST" action="{{ route('notifications.read-all') }}">@csrf @method('PATCH')<button class="btn btn-outline-primary">Mark All Read</button></form>@endsection
+@section('content')<div class="card"><div class="list-group list-group-flush">@forelse($rows as $r)<div class="list-group-item {{ $r->read_at?'':'bg-light' }}"><div class="d-flex justify-content-between"><div><strong>{{ $r->title }}</strong><div>{{ $r->message }}</div><small class="text-muted">{{ $r->created_at->diffForHumans() }}</small></div>@if(!$r->read_at)<form method="POST" action="{{ route('notifications.read',$r) }}">@csrf @method('PATCH')<button class="btn btn-sm btn-outline-secondary">Read</button></form>@endif</div></div>@empty<div class="p-3">No notifications.</div>@endforelse</div></div>{{ $rows->links() }}@endsection

@@ -1,0 +1,22 @@
+<?php
+return [
+    'accepted' => ':attribute অবশ্যই গ্রহণ করতে হবে।',
+    'boolean' => ':attribute অবশ্যই সত্য অথবা মিথ্যা হতে হবে।',
+    'date' => ':attribute অবশ্যই একটি বৈধ তারিখ হতে হবে।',
+    'email' => ':attribute অবশ্যই একটি বৈধ ইমেইল ঠিকানা হতে হবে।',
+    'exists' => 'নির্বাচিত :attribute সঠিক নয়।',
+    'image' => ':attribute অবশ্যই একটি ছবি হতে হবে।',
+    'integer' => ':attribute অবশ্যই একটি পূর্ণসংখ্যা হতে হবে।',
+    'max' => ['numeric' => ':attribute :max-এর বেশি হতে পারবে না।', 'string' => ':attribute :max অক্ষরের বেশি হতে পারবে না।'],
+    'min' => ['numeric' => ':attribute কমপক্ষে :min হতে হবে।', 'string' => ':attribute কমপক্ষে :min অক্ষরের হতে হবে।'],
+    'numeric' => ':attribute অবশ্যই একটি সংখ্যা হতে হবে।',
+    'required' => ':attribute আবশ্যক।',
+    'required_if' => ':other যখন :value, তখন :attribute আবশ্যক।',
+    'same' => ':attribute এবং :other অবশ্যই একই হতে হবে।',
+    'string' => ':attribute অবশ্যই একটি টেক্সট হতে হবে।',
+    'unique' => ':attribute ইতোমধ্যে ব্যবহৃত হয়েছে।',
+    'uploaded' => ':attribute আপলোড করা যায়নি।',
+    'url' => ':attribute অবশ্যই একটি বৈধ URL হতে হবে।',
+    'custom' => [],
+    'attributes' => [],
+];

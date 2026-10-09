@@ -1,0 +1,4 @@
+@extends('layouts.app')
+@section('title',__('Expense Categories')) @section('heading',__('Expense Categories'))
+@section('actions')@can('expense_categories.create')<a href="{{ route('expense-categories.create') }}" class="btn btn-primary">{{ __('New Category') }}</a>@endcan @endsection
+@section('content')<div class="card"><div class="table-responsive"><table class="table mb-0"><thead><tr><th>{{ __('Name') }}</th><th>{{ __('Expense Account') }}</th><th>{{ __('Status') }}</th><th></th></tr></thead><tbody>@foreach($rows as $r)<tr><td>{{ $r->name }}</td><td>{{ $r->expenseAccount?->code }} {{ $r->expenseAccount?->name }}</td><td>{{ $r->is_active ? __('Active') : __('Inactive') }}</td><td class="text-end">@can('expense_categories.edit')<a href="{{ route('expense-categories.edit',$r) }}" class="btn btn-sm btn-outline-primary">{{ __('Edit') }}</a>@endcan</td></tr>@endforeach</tbody></table></div></div>{{ $rows->links() }}@endsection

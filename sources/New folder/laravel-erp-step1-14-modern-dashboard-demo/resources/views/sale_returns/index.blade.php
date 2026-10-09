@@ -1,0 +1,4 @@
+@extends('layouts.app')
+@section('title','Sales Returns') @section('heading','Sales Returns')
+@section('actions')@can('sale_returns.create')<a class="btn btn-primary" href="{{ route('sale-returns.create') }}">New Return</a>@endcan@endsection
+@section('content')<div class="card"><table class="table mb-0"><thead><tr><th>Date</th><th>No</th><th>Customer</th><th>Warehouse</th><th>Status</th><th class="money">Total</th></tr></thead><tbody>@forelse($rows as $r)<tr><td>{{ $r->return_date->format('Y-m-d') }}</td><td><a href="{{ route('sale-returns.show',$r) }}">{{ $r->return_no }}</a></td><td>{{ $r->customer?->name ?? 'Walk-in' }}</td><td>{{ $r->warehouse->name }}</td><td>{{ $r->status }}</td><td class="money">{{ number_format($r->grand_total,2) }}</td></tr>@empty<tr><td colspan="6">No returns.</td></tr>@endforelse</tbody></table></div>{{ $rows->links() }}@endsection

@@ -1,0 +1,12 @@
+<?php $__env->startSection('title', __('Customer Receipts')); ?>
+<?php $__env->startSection('heading', auth()->user()->hasRole('Seller') ? __('Today Receipts') : __('Customer Receipts')); ?>
+<?php $__env->startSection('actions'); ?> <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('customer_payments.create')): ?><a class="btn btn-primary" href="<?php echo e(route('customer-payments.create')); ?>"><?php echo e(__('Receive Payment')); ?></a><?php endif; ?> <?php $__env->stopSection(); ?>
+<?php $__env->startSection('content'); ?>
+<?php if(auth()->user()->hasRole('Seller')): ?>
+    <div class="alert alert-info border-0 shadow-sm"><?php echo e(__('Only receipts entered under your Seller ID for today are shown.')); ?></div>
+<?php endif; ?>
+<div class="card"><div class="table-responsive"><table class="table mb-0"><thead><tr><th><?php echo e(__('Date')); ?></th><th><?php echo e(__('No')); ?></th><th><?php echo e(__('Customer')); ?></th><th><?php echo e(__('Invoice')); ?></th><th><?php echo e(__('Account')); ?></th><th><?php echo e(__('Method')); ?></th><th class="money"><?php echo e(__('Amount')); ?></th></tr></thead><tbody><?php $__empty_1 = true; $__currentLoopData = $rows; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $r): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?><tr><td><?php echo e($r->payment_date->format('Y-m-d')); ?></td><td><?php echo e($r->payment_no); ?></td><td><?php echo e($r->customer->name); ?></td><td><?php echo e($r->sale?->invoice_no); ?></td><td><?php echo e($r->account->name); ?></td><td><?php echo e(__(ucwords(str_replace('_',' ',$r->method)))); ?></td><td class="money"><?php echo e(number_format($r->amount,2)); ?></td></tr><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?><tr><td colspan="7"><?php echo e(__('No receipts.')); ?></td></tr><?php endif; ?></tbody></table></div></div><?php echo e($rows->links()); ?>
+
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\xampp\htdocs\afrintraders\resources\views/customer_payments/index.blade.php ENDPATH**/ ?>

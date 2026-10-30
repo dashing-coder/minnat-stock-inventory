@@ -1,0 +1,24 @@
+{
+  "feature": "FIFO & Average Cost Valuation",
+  "date": "2026-10-30",
+  "source_baseline": "afrin_traders_erp_product_variants_batch_expiry_fixed_2026_10_30.zip",
+  "changes": [
+    "app/Services/Inventory/InventoryCostingService.php",
+    "app/Services/Inventory/InventoryValuationService.php",
+    "app/Services/Inventory/InventoryAuditService.php",
+    "app/Http/Controllers/InventoryController.php",
+    "app/Http/Controllers/DashboardController.php",
+    "app/Http/Controllers/ReportController.php",
+    "resources/views/inventory/valuation.blade.php",
+    "resources/views/dashboard/index.blade.php",
+    "resources/views/reports/top-sheet.blade.php",
+    "routes/console.php",
+    "scripts/verify_fifo_average_patch.php",
+    "tests/Feature/FifoAverageCostingQaTest.php",
+    "FIFO_AVERAGE_COST_VALUATION_QA_RELEASE_2026_10_30.md",
+    "FIFO_AVERAGE_COST_VALUATION_PATCH_MANIFEST.json"
+  ],
+  "production_ready": false,
+  "db_modified": false,
+  "full_integration_qa": "pending"
+}

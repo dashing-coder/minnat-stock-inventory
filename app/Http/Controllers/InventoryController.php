@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\InventoryBatch;
+use App\Services\Inventory\BatchRegistrationService;
 use App\Models\InventoryCostLayer;
 use App\Models\StockAdjustment;
 use App\Models\Warehouse;
@@ -335,10 +336,17 @@ class InventoryController extends Controller
 
         $rows=InventoryBatch::with(['warehouse','product.parentProduct'])
             ->where('quantity','>',0)
-            ->whereNotNull('expires_at')
             ->when($request->filled('warehouse'),fn($q)=>$q->where('warehouse_id',$request->warehouse))
-            ->whereDate('expires_at','<=',$to)
-            ->orderBy('expires_at')
+            ->where(function ($query) use ($to) {
+                $query->whereDate('expires_at', '<=', $to)
+                    ->orWhere(function ($missing) {
+                        // Unknown expiry on a product requiring expiry dates must
+                        // not disappear from expiry alerts; those lots are unsaleable.
+                        $missing->whereNull('expires_at')
+                            ->whereHas('product', fn ($product) => $product->where('track_expiry', true));
+                    });
+            })
+            ->orderByRaw('expires_at IS NOT NULL, expires_at ASC')
             ->paginate(30)->withQueryString();
 
         return view('inventory.expiry',[
@@ -349,98 +357,51 @@ class InventoryController extends Controller
     }
 
 
-    public function storeBatch(Request $request)
+    public function storeBatch(Request $request, BatchRegistrationService $registration)
     {
-        $data=$request->validate([
-            'warehouse_id'=>'required|exists:warehouses,id',
-            'product_id'=>'required|exists:products,id',
-            'batch_no'=>'required|string|max:100',
-            'manufactured_at'=>'nullable|date',
-            'expires_at'=>'nullable|date|after_or_equal:manufactured_at',
-            'quantity'=>'required|numeric|gt:0',
-            'unit_cost'=>'required|numeric|min:0',
+        $data = $request->validate([
+            'warehouse_id' => 'required|integer|exists:warehouses,id',
+            'product_id' => 'required|integer|exists:products,id',
+            'batch_no' => 'required|string|max:100',
+            'manufactured_at' => 'nullable|date',
+            'expires_at' => 'nullable|date|after_or_equal:manufactured_at',
+            'quantity' => 'required|numeric|gt:0|decimal:0,4',
+            'unit_cost' => 'required|numeric|min:0|decimal:0,4',
         ]);
-
-        $product=Product::findOrFail($data['product_id']);
-        if ($product->track_expiry && empty($data['expires_at'])) {
-            return back()->withErrors(['expires_at'=>__('Expiry date is required for :product.',['product'=>$product->name])])->withInput();
-        }
-
-        $duplicate=InventoryBatch::query()
-            ->where('warehouse_id',$data['warehouse_id'])
-            ->where('product_id',$data['product_id'])
-            ->where('batch_no',$data['batch_no'])
-            ->exists();
-        if ($duplicate) {
-            return back()->withErrors(['batch_no'=>__('This batch number is already registered for the selected product and warehouse.')])->withInput();
-        }
-
-        $stock=(float) WarehouseStock::query()->where('warehouse_id',$data['warehouse_id'])->where('product_id',$data['product_id'])->value('quantity');
-        $already=(float) InventoryBatch::query()->where('warehouse_id',$data['warehouse_id'])->where('product_id',$data['product_id'])->sum('quantity');
-        if ($already+(float)$data['quantity']>$stock+0.0000001) {
-            return back()->withErrors(['quantity'=>__('Batch quantity would exceed current warehouse stock.')])->withInput();
-        }
-
-        InventoryBatch::create([
-            'warehouse_id'=>$data['warehouse_id'],'product_id'=>$data['product_id'],'batch_no'=>$data['batch_no'],
-            'manufactured_at'=>$data['manufactured_at']??null,'expires_at'=>$data['expires_at']??null,
-            'quantity'=>$data['quantity'],'unit_cost'=>$data['unit_cost'],'status'=>'active',
-        ]);
-
-        return back()->with('success',__('Batch registered against existing stock.'));
+        $registration->register($data);
+        return back()->with('success', __('Batch registered against existing stock without adding stock again.'));
     }
 
-    public function valuation(Request $request)
+    public function valuation(Request $request, \App\Services\Inventory\InventoryValuationService $valuation)
     {
-        $stocks=WarehouseStock::with(['warehouse','product.parentProduct'])
-            ->when($request->filled('warehouse'),fn($q)=>$q->where('warehouse_id',$request->warehouse))
-            ->where('quantity','!=',0)
-            ->orderBy('warehouse_id')->orderBy('product_id')->get();
-
-        $rows=$stocks->map(function(WarehouseStock $stock){
-            $product=$stock->product;
-            if(!$product)return null;
-            $quantity=(float)$stock->quantity;
-            $fallbackCost=(float)$stock->average_cost>0?(float)$stock->average_cost:(float)$product->purchase_price;
-
-            if($product->costing_method==='fifo'){
-                $layers=InventoryCostLayer::query()
-                    ->where('warehouse_id',$stock->warehouse_id)->where('product_id',$stock->product_id)
-                    ->where('quantity_remaining','>',0)
-                    ->get(['quantity_remaining','unit_cost']);
-                $layerQty=(float)$layers->sum(fn($x)=>(float)$x->quantity_remaining);
-                $value=(float)$layers->sum(fn($x)=>(float)$x->quantity_remaining*(float)$x->unit_cost);
-                if($quantity>$layerQty){$value+=($quantity-$layerQty)*$fallbackCost;}
-                $unitCost=$quantity!=0?$value/$quantity:$fallbackCost;
-            }else{
-                $unitCost=$fallbackCost;
-                $value=$quantity*$unitCost;
-            }
-
-            return [
-                'warehouse'=>$stock->warehouse?->name??'—',
-                'product'=>$product->display_name,
-                'sku'=>$product->sku,
-                'method'=>$product->costing_method==='fifo'?'FIFO':'Weighted Average',
-                'quantity'=>$quantity,
-                'unit_cost'=>$unitCost,
-                'value'=>$value,
-            ];
-        })->filter()->values();
-
-        if($request->boolean('csv')){
-            return response()->streamDownload(function() use($rows){
-                $h=fopen('php://output','w');fputcsv($h,['Warehouse','Product','SKU','Method','Quantity','Unit Cost','Inventory Value']);
-                foreach($rows as $r)fputcsv($h,[$r['warehouse'],$r['product'],$r['sku'],$r['method'],$r['quantity'],$r['unit_cost'],$r['value']]);
+        $request->validate(['warehouse' => 'nullable|integer|exists:warehouses,id']);
+        $snapshot = $valuation->snapshot($request->filled('warehouse') ? $request->integer('warehouse') : null);
+        $rows = $snapshot['rows'];
+        if ($request->boolean('csv')) {
+            return response()->streamDownload(function () use ($rows) {
+                $h = fopen('php://output', 'w');
+                fputcsv($h, ['Warehouse','Product','SKU','Method','Quantity','Covered Layer Quantity','Unit Cost','Inventory Value','Status']);
+                foreach ($rows as $r) {
+                    fputcsv($h, [
+                        $this->csvSafeText($r['warehouse']), $this->csvSafeText($r['product']),
+                        $this->csvSafeText($r['sku']), $r['method'], $r['quantity'],
+                        $r['layer_quantity'], $r['unit_cost'] ?? '', $r['value'] ?? '', $r['status']]);
+                }
                 fclose($h);
-            },'inventory-valuation.csv',['Content-Type'=>'text/csv']);
+            }, 'inventory-valuation.csv', ['Content-Type' => 'text/csv']);
         }
-
-        return view('inventory.valuation',[
-            'rows'=>$this->paginate($rows,$request),
-            'totalValue'=>$rows->sum('value'),
-            'warehouses'=>Warehouse::where('is_active',true)->orderBy('name')->get(),
+        return view('inventory.valuation', [
+            'rows' => $this->paginate($rows, $request),
+            'totalValue' => $snapshot['total_value'],
+            'valuationReviewCount' => $snapshot['review_count'],
+            'warehouses' => Warehouse::where('is_active', true)->orderBy('name')->get(),
         ]);
+    }
+
+    private function csvSafeText(?string $value): string
+    {
+        $value = (string) $value;
+        return preg_match('/^[\s]*[=+@\-\t\r]/u', $value) ? "'".$value : $value;
     }
 
     private function paginate(Collection $collection, Request $request, int $perPage = 30): LengthAwarePaginator

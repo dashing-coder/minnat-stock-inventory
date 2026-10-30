@@ -7,6 +7,9 @@
 @endsection
 @section('content')
 <div class="alert alert-info py-2">{{ __('All amounts are BDT. Sales and purchases are translated at saved document exchange rates; returns use original invoice rates. The inventory value is current, not a historical as-of-date reconstruction.') }}</div>
+@if(($position['inventory_valuation_review_count'] ?? 0) > 0)
+<div class="alert alert-warning" role="alert">{{ __('Inventory valuation is partial:') }} {{ $position['inventory_valuation_review_count'] }} {{ __('stock row(s) have incomplete cost layers and were excluded from the displayed inventory value. Reconcile before using this report for closing.') }}</div>
+@endif
 <form method="GET" class="card card-body mb-3 no-print"><div class="row g-2"><div class="col-md-4"><label class="form-label">{{ __('From') }}</label><input type="date" name="from" value="{{ $from }}" class="form-control"></div><div class="col-md-4"><label class="form-label">{{ __('To') }}</label><input type="date" name="to" value="{{ $to }}" class="form-control"></div><div class="col-md-4 d-flex align-items-end"><button class="btn btn-primary w-100">{{ __('Apply Filters') }}</button></div></div></form>
 <div class="card mb-3"><div class="card-header fw-bold">{{ __('Period Performance') }} <span class="text-muted fw-normal">({{ $from }} — {{ $to }})</span></div><div class="card-body"><div class="row g-3">
 @foreach([

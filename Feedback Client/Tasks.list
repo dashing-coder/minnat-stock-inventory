@@ -39,10 +39,10 @@ No.	Module / Fix	                        Development Status
 | 06  | Customer & Supplier Management    | ✅ Implemented | 🟡 Pending |---FIXED
 | 07  | Multi-Warehouse Management        | ✅ Implemented | 🟡 Pending |---FIXED
 | 08  | Due, Collection & Loan Management | ✅ Implemented | 🟡 Pending |---FIXED
-| 09  | Barcode Management                | ✅ Implemented | 🟡 Pending |
-| 10  | Product Variants, Batch & Expiry  | ✅ Implemented | 🟡 Pending |
-| 11  | FIFO & Average Cost Valuation     | ✅ Implemented | 🟡 Pending |
-| 12  | Expense Management                | ✅ Implemented | 🟡 Pending |
+| 09  | Barcode Management                | ✅ Implemented | 🟡 Pending |---FIXED
+| 10  | Product Variants, Batch & Expiry  | ✅ Implemented | 🟡 Pending |---FIXED
+| 11  | FIFO & Average Cost Valuation     | ✅ Implemented | 🟡 Pending |---FIXED
+| 12  | Expense Management                | ✅ Implemented | 🟡 Pending |---FIXED
 | 13  | User Roles & Permissions          | ✅ Implemented | 🟡 Pending |
 | 14  | Quick Search & Smart Filters      | ✅ Implemented | 🟡 Pending |
 | 15  | Low Stock & Reorder Alerts        | ✅ Implemented | 🟡 Pending |

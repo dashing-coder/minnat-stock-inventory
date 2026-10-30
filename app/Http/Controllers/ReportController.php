@@ -558,6 +558,7 @@ class ReportController extends Controller
             ->pluck('balance','subtype');
 
         $party = $this->partyPosition($to);
+        $inventorySnapshot = app(\App\Services\Inventory\InventoryValuationService::class)->snapshot();
         $position = [
             'cash' => (float) ($cashBank['cash'] ?? 0),
             'bank' => (float) ($cashBank['bank'] ?? 0),
@@ -565,7 +566,8 @@ class ReportController extends Controller
             'payable' => $party['payable'],
             'customer_advance' => $party['customer_advance'],
             'supplier_advance' => $party['supplier_advance'],
-            'inventory_value' => $this->currentInventoryValue(),
+            'inventory_value' => $inventorySnapshot['total_value'],
+            'inventory_valuation_review_count' => $inventorySnapshot['review_count'],
             'loan_receivable' => $this->loanOutstandingAsOf('lent', $to),
             'loan_payable' => $this->loanOutstandingAsOf('borrowed', $to),
         ];
@@ -577,6 +579,7 @@ class ReportController extends Controller
                 ['Period','Operating Expenses',$period['expenses']],['Period','Accounting Income',$period['income']],['Period','Accounting Expense',$period['accounting_expense']],['Period','Net Profit',$period['net_profit']],
                 ['Position','Cash Balance',$position['cash']],['Position','Bank Balance',$position['bank']],['Position','Receivable',$position['receivable']],['Position','Payable',$position['payable']],
                 ['Position','Customer Advance',$position['customer_advance']],['Position','Supplier Advance',$position['supplier_advance']],['Position','Current Inventory Value',$position['inventory_value']],
+                ['Position','Inventory Valuation Review Rows',$position['inventory_valuation_review_count']],
                 ['Position','Loan Receivable',$position['loan_receivable']],['Position','Loan Payable',$position['loan_payable']],
             ];
             $csvRows = array_map(fn ($x) => [$x[0],$x[1],number_format((float)$x[2],2,'.','')], $csvRows);
@@ -819,32 +822,6 @@ class ReportController extends Controller
             ->get();
 
         return (float) $rows->sum('outstanding');
-    }
-
-    private function currentInventoryValue(): float
-    {
-        $stocks = WarehouseStock::query()->with('product:id,purchase_price,costing_method')
-            ->where('quantity','!=',0)->get();
-        $layers = DB::table('inventory_cost_layers')->where('quantity_remaining','>',0)
-            ->selectRaw('warehouse_id, product_id, SUM(quantity_remaining) layer_qty, SUM(quantity_remaining * unit_cost) layer_value')
-            ->groupBy('warehouse_id','product_id')->get()->keyBy(fn ($row) => $row->warehouse_id.'|'.$row->product_id);
-
-        $total = 0.0;
-        foreach ($stocks as $stock) {
-            if (! $stock->product) continue;
-            $quantity = (float) $stock->quantity;
-            $fallback = (float) $stock->average_cost > 0 ? (float) $stock->average_cost : (float) $stock->product->purchase_price;
-            if ($stock->product->costing_method === 'fifo') {
-                $layer = $layers->get($stock->warehouse_id.'|'.$stock->product_id);
-                $layerQty = (float) ($layer->layer_qty ?? 0);
-                $value = (float) ($layer->layer_value ?? 0);
-                if ($quantity > $layerQty) $value += ($quantity - $layerQty) * $fallback;
-                $total += $value;
-            } else {
-                $total += $quantity * $fallback;
-            }
-        }
-        return $total;
     }
 
     private function table(string $title,array $headers,array $rows,array $totals,Request $request){if($request->boolean('csv'))return $this->csv($title,$headers,$rows);return view('reports.table',compact('title','headers','rows','totals'));}

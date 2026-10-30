@@ -39,7 +39,7 @@ class DashboardController extends Controller
 
         $today = now()->toDateString();
         $monthStart = now()->startOfMonth()->toDateString();
-        [$currentStockValue, $warehouseValues] = $this->inventoryValuationSummary();
+        [$currentStockValue, $warehouseValues, $valuationReviewCount] = $this->inventoryValuationSummary();
 
         // Gross posted documents less posted returns on their actual transaction dates.
         // All metrics and chart series use the same as-of date and do not include drafts.
@@ -68,6 +68,7 @@ class DashboardController extends Controller
                 ->value('balance'),
 
             'stock_value' => $currentStockValue,
+            'stock_value_review_count' => $valuationReviewCount,
             'month_net_profit' => $this->netProfit($monthStart, $today),
 
             'low_stock' => WarehouseStock::query()
@@ -360,56 +361,12 @@ class DashboardController extends Controller
      */
     private function inventoryValuationSummary(): array
     {
-        $stocks = WarehouseStock::query()
-            ->with(['warehouse:id,name', 'product:id,purchase_price,costing_method'])
-            ->where('quantity', '!=', 0)
-            ->get();
-
-        $layers = InventoryCostLayer::query()
-            ->where('quantity_remaining', '>', 0)
-            ->selectRaw('warehouse_id, product_id, SUM(quantity_remaining) AS layer_qty, SUM(quantity_remaining * unit_cost) AS layer_value')
-            ->groupBy('warehouse_id', 'product_id')
-            ->get()
-            ->keyBy(fn ($row) => $row->warehouse_id.'|'.$row->product_id);
-
-        $warehouseTotals = [];
-        $total = 0.0;
-
-        foreach ($stocks as $stock) {
-            if (! $stock->product || ! $stock->warehouse) {
-                continue;
-            }
-
-            $quantity = (float) $stock->quantity;
-            $fallbackCost = (float) $stock->average_cost > 0
-                ? (float) $stock->average_cost
-                : (float) $stock->product->purchase_price;
-
-            if ($stock->product->costing_method === 'fifo') {
-                $layer = $layers->get($stock->warehouse_id.'|'.$stock->product_id);
-                $layerQty = (float) ($layer->layer_qty ?? 0);
-                $value = (float) ($layer->layer_value ?? 0);
-                if ($quantity > $layerQty) {
-                    $value += ($quantity - $layerQty) * $fallbackCost;
-                }
-            } else {
-                $value = $quantity * $fallbackCost;
-            }
-
-            $total += $value;
-            $warehouseTotals[$stock->warehouse_id] = ($warehouseTotals[$stock->warehouse_id] ?? [
-                'name' => $stock->warehouse->name,
-                'stock_value' => 0.0,
-            ]);
-            $warehouseTotals[$stock->warehouse_id]['stock_value'] += $value;
-        }
-
-        $warehouseValues = collect($warehouseTotals)
-            ->map(fn ($row) => (object) $row)
-            ->sortByDesc('stock_value')
-            ->values();
-
-        return [$total, $warehouseValues];
+        $snapshot = app(\App\Services\Inventory\InventoryValuationService::class)->snapshot();
+        $totals = $snapshot['rows']->filter(fn ($r) => $r['value'] !== null)
+            ->groupBy('warehouse_id')->map(function ($rows) {
+                return (object) ['name' => $rows->first()['warehouse'], 'stock_value' => $rows->sum('value')];
+            })->sortByDesc('stock_value')->values();
+        return [$snapshot['total_value'], $totals, $snapshot['review_count']];
     }
 
     private function recentTransactions(): Collection

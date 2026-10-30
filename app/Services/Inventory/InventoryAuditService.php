@@ -87,9 +87,9 @@ class InventoryAuditService
                 ]);
             }
 
-            $fallbackCost = (float) $stock->average_cost > 0 ? (float) $stock->average_cost : (float) $stock->purchase_price;
-            $fifoValue = (float) ($layer->value ?? 0) + max(0, $qty - $layerQty) * $fallbackCost;
-            $inventoryValuation += $stock->costing_method === 'fifo' ? $fifoValue : $qty * $fallbackCost;
+            // Receipt layers are the source of FIFO value; the current catalogue
+            // purchase price cannot replace missing historical receipt costs.
+            // Snapshot validation below excludes incomplete cost records entirely.
             $layeredValuation += (float) ($layer->value ?? 0);
         }
 
@@ -240,12 +240,14 @@ class InventoryAuditService
             ->where('j.status', 'posted')->where('a.code', '1200')
             ->selectRaw('COALESCE(SUM(l.debit - l.credit),0) AS amount')->value('amount');
 
-        $inventoryValuation = round($inventoryValuation, 2);
+        $valuationSnapshot = app(InventoryValuationService::class)->snapshot();
+        $inventoryValuation = $valuationSnapshot['total_value'];
         $inventoryAccountBalance = round($inventoryAccountBalance, 2);
         $glDifference = round($inventoryAccountBalance - $inventoryValuation, 2);
         $checks = [
             'warehouse_matches_stock_movements' => $counts['movement_mismatch'] === 0,
             'warehouse_matches_cost_layers' => $counts['cost_layer_mismatch'] === 0,
+            'stock_valuation_rows_complete' => $valuationSnapshot['complete'],
             'tracked_batches_match_stock' => $counts['batch_mismatch'] === 0,
             'reserved_quantity_valid' => $counts['invalid_reservation'] === 0,
             'active_reservations_match_reserved_quantity' => $counts['reservation_register_mismatch'] === 0,
@@ -262,6 +264,7 @@ class InventoryAuditService
                 'warehouse_stock_rows' => $numberOfStocks,
                 'on_hand_quantity_all_products' => round($totalQuantity, 4), // Different units; diagnostic only.
                 'stock_valuation' => $inventoryValuation,
+                'stock_valuation_review_rows' => $valuationSnapshot['review_count'],
                 'fifo_layer_value_diagnostic' => round($layeredValuation, 2),
                 'general_ledger_inventory_1200' => $inventoryAccountBalance,
                 'inventory_to_gl_difference' => $glDifference,

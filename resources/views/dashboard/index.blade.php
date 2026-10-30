@@ -46,6 +46,9 @@
     $expenseValues = $expenseBreakdown->pluck('total')->map(fn ($value) => (float) $value)->values()->all();
 @endphp
 
+@if(($stats['stock_value_review_count'] ?? 0) > 0)
+<div class="alert alert-warning" role="alert"><strong>{{ __('Inventory valuation requires review') }}:</strong> {{ $stats['stock_value_review_count'] }} {{ __('stock row(s) have incomplete cost history. The Stock Value KPI is partial, not a certified total.') }}</div>
+@endif
 <div class="erp-dashboard-v2">
     <div class="erp-dashboard-intro">
         <div>

@@ -4,12 +4,51 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Services\Barcode\BarcodeCatalogService;
+use App\Services\Barcode\Code39Barcode;
+use Illuminate\Validation\Validator;
+use InvalidArgumentException;
 
 class ProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return $this->user()->can($this->isMethod('post') ? 'products.create' : 'products.edit');
+    }
+
+    protected function prepareForValidation(): void
+    {
+        // Scanner identification is whitespace-insensitive. Persist clean values.
+        $values = [];
+        foreach (['sku', 'barcode'] as $field) {
+            if ($this->exists($field) && is_string($this->input($field))) {
+                $value = trim($this->input($field));
+                $values[$field] = $value === '' && $field === 'barcode' ? null : $value;
+            }
+        }
+        $this->merge($values);
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if ($validator->errors()->has('sku') || $validator->errors()->has('barcode')) {
+                return;
+            }
+            $barcode = $this->input('barcode');
+            if ($barcode !== null && $barcode !== '') {
+                try {
+                    app(Code39Barcode::class)->normalize($barcode);
+                } catch (InvalidArgumentException $exception) {
+                    $validator->errors()->add('barcode', $exception->getMessage());
+                }
+            }
+            $existing = $this->route('product');
+            $product = $existing instanceof \App\Models\Product ? $existing : null;
+            foreach (app(BarcodeCatalogService::class)->checkInput($this->only(['sku','barcode']), $product) as $field => $message) {
+                $validator->errors()->add($field, $message);
+            }
+        });
     }
 
     public function rules(): array

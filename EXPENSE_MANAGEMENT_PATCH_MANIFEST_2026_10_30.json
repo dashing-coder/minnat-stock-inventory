@@ -1,0 +1,28 @@
+{
+  "feature": "Expense Management",
+  "built_from": "afrin_traders_erp_fifo_average_cost_fixed_2026_10_30.zip",
+  "date": "2026-10-30",
+  "final_qa": "PENDING - MySQL integration, legacy summary journal reconciliation and browser role QA",
+  "database_migration_required": false,
+  "changes": {
+    "app/Http/Controllers/ExpenseController.php": "21f28a3269dafbdb7d9f1111e176dd87109e98245b0c36802ee8b39d50222b8d",
+    "app/Http/Controllers/ExpenseCategoryController.php": "796db3230c2f943ecae02ad9c6339896c7bf291d18fc27bf11548ba1f050cb43",
+    "app/Models/Expense.php": "e27f86b39b7165453b42cc54f2e47254d2a51ea759b826490645c0466219d525",
+    "app/Services/ExpenseService.php": "12c2db600b84078136858c0b681293143d6626420c8a727d1cb5a3ee6eaf0a84",
+    "app/Services/Expenses/ExpenseManagementAuditService.php": "8f07fc1cff39cf2cca1e2c698c606a54f2d6eb43242111caaf2051c20d4fc414",
+    "app/Support/ExpenseMoney.php": "83dc137248afb099c6810f9a8aee77ac437d019f517bf854fe07412c02a10e30",
+    "resources/views/expenses/index.blade.php": "e7ca503e169fbeb20e4f43e2049407b497eb5d948a11e8ef670feaaf89a6d24d",
+    "resources/views/expenses/form.blade.php": "fa54f639616b55f800a32d9e2435a8340ace79254b72eb92ccdabfdac760f025",
+    "resources/views/expenses/show.blade.php": "27fd8c3a61b6436d04916f43146b5ec7832dafe986f1a7be25826171fc2d6006",
+    "routes/console.php": "78e6197f2ee0c68233dfcf540efc19cc9f98fc956b97eb18417db325d8573791",
+    "scripts/verify_expense_management_patch.php": "999110aa6f91a1f67b3f8a88792462599bb59aff6257d4db7821b5243a5c5a2a",
+    "tests/Feature/ExpenseManagementRegressionTest.php": "dd05152f21cce2f297aea3791df97efc8265d80d072e14d44217a30d2b256b08",
+    "EXPENSE_MANAGEMENT_QA_RELEASE_2026_10_30.md": "36591deef8808b98c6b41349a52917833e97a9de0cdf4be1e196106ab9fb1108"
+  },
+  "historic_sql_finding": {
+    "expense_documents_posted": 28,
+    "individual_expense_journals": 0,
+    "monthly_expense_summary_journals": 6,
+    "legacy_export_date": "supplied October 27 SQL export"
+  }
+}

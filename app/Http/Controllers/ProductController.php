@@ -65,7 +65,10 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        abort_if($product->stockMovements()->exists(),422,__('Product has inventory history. Set it inactive instead.'));
+        abort_if($product->variants()->exists() || $product->batches()->exists() || $product->warehouseStocks()->exists()
+            || \App\Models\InventoryCostLayer::where('product_id', $product->id)->exists()
+            || $product->stockMovements()->exists(), 422,
+            __('Product has variants, stock or inventory history. Set it inactive instead.'));
         if ($product->image) Storage::disk('public')->delete($product->image);
         $product->delete();
         return redirect()->route('products.index')->with('success',__('Product deleted.'));

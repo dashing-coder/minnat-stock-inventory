@@ -1,0 +1,19 @@
+{
+  "baseline": "afrin_traders_erp_due_collection_loan_fixed_2026_10_30.zip",
+  "files_sha256": {
+    "app/Http/Controllers/BarcodePrintController.php": "a0b20dfbc6061bf82ce0455e6b35743e52634da377f81e449879b4390ac514a6",
+    "app/Http/Controllers/ProductVariantController.php": "0359f6f0547efdc2de73701e30eb4593c0033bc11eeda8608bd5640f5bb89cc7",
+    "app/Http/Requests/ProductRequest.php": "9d626a82d498689b2f56d0da6ee37e0e49338be99d641ee50b837beeb918c1b0",
+    "app/Services/Barcode/BarcodeCatalogService.php": "f6d9d083be61273e38055699cf537a4d5d24ee21bd5fd0bbbf2217e5d2f66a8f",
+    "app/Services/Barcode/BarcodeAuditService.php": "8d9e200153da081a852569337e70fa50f815cce87af57babef2d2698b3d488e1",
+    "resources/views/products/form.blade.php": "b90eadd280c5be617d54406f406ebdd21813eccfdd6ac02a6925263aa771bec0",
+    "resources/views/settings/barcode-print.blade.php": "cdaeeb394d974389a4bbe999fe5e1d57154840c93bbac3cb67bb9d584c5c6db5",
+    "resources/views/settings/barcode-labels.blade.php": "559e73bf1161b546089b3b837090980a10c54b2b3c4551c1ff5dd7216dd3ddab",
+    "routes/console.php": "11590d643608cfead75c1a1162b0f76d56feb17f1378ed85ecc80d15d8298e61",
+    "scripts/verify_barcode_management_patch.php": "2535ee9c814c5a7aab90e62bb15d1ac2e1092c47ecef2bf03e513eff4f6b54d2",
+    "tests/Feature/BarcodeManagementRegressionTest.php": "b34584ac7de66715d6f86d3055c6154c005305c9838a1684aaeae443c7556bc9",
+    "tests/Feature/BarcodeCatalogDatabaseRegressionTest.php": "f23d9c1bcb8364b753895bbc31577763f043c45d1ac329cd84c4f52f8e0fa000",
+    "BARCODE_MANAGEMENT_QA_RELEASE_2026_10_30.md": "2b5dc12726d2596bd9866debc96e87ef1f71ac682b1e8b7f8ca5ec04d9d4a47b"
+  },
+  "no_database_migration": true
+}

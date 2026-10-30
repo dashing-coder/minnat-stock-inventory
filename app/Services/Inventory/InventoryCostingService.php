@@ -9,6 +9,7 @@ use App\Models\Warehouse;
 use App\Models\WarehouseStock;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Carbon\CarbonImmutable;
 
 /**
  * Cost-layer quantities are independent of physical stock movements. Both calls must
@@ -33,13 +34,25 @@ class InventoryCostingService
     ): ?InventoryBatch {
         $this->validatePositiveQuantity($quantity);
         $this->validateCost($unitCost);
+        $this->assertCostingMethod($product);
+        $batchNo = $batchNo === null ? null : trim($batchNo);
+        $batchNo = $batchNo === '' ? null : $batchNo;
+        if ($batchNo !== null && mb_strlen($batchNo) > 100) {
+            throw ValidationException::withMessages(['batch_no' => __('Batch number must be 100 characters or fewer.')]);
+        }
+        if ($product->track_expiry && ! $product->track_batch) {
+            throw ValidationException::withMessages(['product' => __('Expiry-tracked products must also be batch-tracked.')]);
+        }
+        $this->assertBatchDates($manufacturedAt, $expiresAt);
 
         return DB::transaction(function () use ($warehouse, $product, $quantity, $unitCost, $date, $sourceType, $sourceId, $batchNo, $manufacturedAt, $expiresAt, $enforceBatchRules) {
             $stock = $this->lockStock($warehouse->id, $product->id);
             $oldQty = max(0, (float) $stock->quantity);
+            // A recorded zero weighted-average cost can be legitimate (free stock).
+            // Replacing it with the current catalogue purchase price invents value.
             $oldAverage = (float) $stock->average_cost;
-            if ($oldAverage <= 0 && $oldQty > self::EPSILON) {
-                $oldAverage = (float) $product->purchase_price;
+            if (! is_finite($oldAverage) || $oldAverage < 0) {
+                throw ValidationException::withMessages(['stock' => __('Stored average cost is invalid. Reconcile this warehouse stock before receiving.')]);
             }
 
             // Receive is called before physical stockIn; the old quantity is correct here.
@@ -75,7 +88,7 @@ class InventoryCostingService
                         'expires_at' => $expiresAt,
                         'quantity' => 0,
                         'unit_cost' => $unitCost,
-                        'status' => 'active',
+                        'status' => $product->track_expiry && ! $expiresAt ? 'quarantine' : 'active',
                     ]);
                 } else {
                     // A repeated batch number must not erase or contradict known traceability.
@@ -85,6 +98,9 @@ class InventoryCostingService
                     if ($expiresAt && $batch->expires_at && $batch->expires_at->toDateString() !== $expiresAt) {
                         throw ValidationException::withMessages(['batch_no' => __('Batch expiry date does not match the existing batch.')]);
                     }
+                    if ($enforceBatchRules && $product->track_expiry && ! $batch->expires_at && (float) $batch->quantity > self::EPSILON) {
+                        throw ValidationException::withMessages(['batch_no' => __('Existing stock in this batch is missing its expiry date. Review traceability before receiving more.')]);
+                    }
                 }
 
                 $oldBatchQty = max(0, (float) $batch->quantity);
@@ -92,7 +108,9 @@ class InventoryCostingService
                 $batch->quantity = $oldBatchQty + $quantity;
                 $batch->manufactured_at = $batch->manufactured_at ?: $manufacturedAt;
                 $batch->expires_at = $batch->expires_at ?: $expiresAt;
-                $batch->status = 'active';
+                // Never release a lot with unknown expiry into saleable stock.
+                // Returns without original batch provenance remain quarantined.
+                $batch->status = $product->track_expiry && ! $batch->expires_at ? 'quarantine' : 'active';
                 $batch->save();
             }
 
@@ -118,14 +136,16 @@ class InventoryCostingService
     }
 
     /**
-     * Return the cost fragments used by a transfer so the destination does not
-     * collapse different FIFO layers into a single blended-cost layer.
+     * Return consumed cost fragments. All normal posting paths require complete
+     * receipt layers; missing cost history must not silently manufacture COGS.
+     * The explicit legacy fallback is for supervised reconciliation only.
      *
      * @return array{total_cost:float,allocations:array<int,array{quantity:float,unit_cost:float,batch_no:?string,manufactured_at:?string,expires_at:?string}>}
      */
-    public function issueDetailed(Warehouse $warehouse, Product $product, float $quantity, bool $requireCompleteLayers = false): array
+    public function issueDetailed(Warehouse $warehouse, Product $product, float $quantity, bool $requireCompleteLayers = true): array
     {
         $this->validatePositiveQuantity($quantity);
+        $this->assertCostingMethod($product);
 
         return DB::transaction(function () use ($warehouse, $product, $quantity, $requireCompleteLayers) {
             $stock = $this->lockStock($warehouse->id, $product->id);
@@ -136,8 +156,8 @@ class InventoryCostingService
 
             $method = in_array($product->costing_method, ['fifo', 'average'], true) ? $product->costing_method : 'average';
             $averageCost = (float) $stock->average_cost;
-            if ($averageCost <= 0) {
-                $averageCost = (float) $product->purchase_price;
+            if (! is_finite($averageCost) || $averageCost < 0) {
+                throw ValidationException::withMessages(['stock' => __('Stored average cost is invalid. Reconcile inventory costing before issuing stock.')]);
             }
 
             $layers = InventoryCostLayer::query()
@@ -158,6 +178,8 @@ class InventoryCostingService
                     ->where('warehouse_id', $warehouse->id)
                     ->where('product_id', $product->id)
                     ->where('quantity', '>', 0)
+                    ->where('status', 'active')
+                    ->when($product->track_expiry, fn ($query) => $query->whereNotNull('expires_at'))
                     ->where(function ($query) {
                         $query->whereNull('expires_at')->orWhereDate('expires_at', '>=', now()->toDateString());
                     })
@@ -219,7 +241,7 @@ class InventoryCostingService
      *
      * @return array<int,array{quantity:float,unit_cost:float}>
      */
-    private function consumeLayers($layers, float $quantity, float $fallbackCost, ?int $batchId = null, bool $requireCompleteLayers = false): array
+    private function consumeLayers($layers, float $quantity, float $fallbackCost, ?int $batchId = null, bool $requireCompleteLayers = true): array
     {
         $pieces = [];
         $remaining = $quantity;
@@ -232,6 +254,9 @@ class InventoryCostingService
             if ($remaining <= self::EPSILON) break;
             $take = min($remaining, max(0, (float) $layer->quantity_remaining));
             if ($take <= self::EPSILON) continue;
+            if (! is_finite((float) $layer->unit_cost) || (float) $layer->unit_cost < 0) {
+                throw ValidationException::withMessages(['stock' => __('Receipt cost layer is invalid. Reconcile costing before posting.')]);
+            }
             $layer->quantity_remaining = max(0, round((float) $layer->quantity_remaining - $take, 4));
             $layer->save();
             $pieces[] = ['quantity' => $take, 'unit_cost' => (float) $layer->unit_cost];
@@ -258,6 +283,31 @@ class InventoryCostingService
             'manufactured_at' => $batch->manufactured_at?->toDateString(),
             'expires_at' => $batch->expires_at?->toDateString(),
         ];
+    }
+
+    private function assertBatchDates(?string $manufacturedAt, ?string $expiresAt): void
+    {
+        foreach (['manufactured_at' => $manufacturedAt, 'expiry_date' => $expiresAt] as $field => $value) {
+            if ($value === null) continue;
+            try {
+                $date = CarbonImmutable::createFromFormat('!Y-m-d', $value);
+            } catch (\Throwable) {
+                $date = false;
+            }
+            if (! $date || $date->toDateString() !== $value) {
+                throw ValidationException::withMessages([$field => __('Use a valid YYYY-MM-DD date.')]);
+            }
+        }
+        if ($manufacturedAt && $expiresAt && $expiresAt < $manufacturedAt) {
+            throw ValidationException::withMessages(['expiry_date' => __('Expiry cannot precede manufacture date.')]);
+        }
+    }
+
+    private function assertCostingMethod(Product $product): void
+    {
+        if (! in_array($product->costing_method, ['fifo', 'average'], true)) {
+            throw ValidationException::withMessages(['costing_method' => __('Select a valid FIFO or weighted-average costing method before posting.')]);
+        }
     }
 
     private function validatePositiveQuantity(float $quantity): void

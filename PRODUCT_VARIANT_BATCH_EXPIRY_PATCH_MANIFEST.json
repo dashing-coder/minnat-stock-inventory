@@ -1,0 +1,64 @@
+{
+  "feature": "Product Variants, Batch & Expiry",
+  "baseline": "afrin_traders_erp_barcode_management_fixed_2026_10_30.zip",
+  "release_date": "2026-10-30",
+  "migrations_added": 0,
+  "phpunit_executed": false,
+  "mysql_integration_executed": false,
+  "modified_files": {
+    "app/Services/Inventory/BatchRegistrationService.php": {
+      "sha256": "f19dc8610155a7edcfba33dbbabab74a008e2c81bf49de09838d10e08ba6542f",
+      "size": 4086
+    },
+    "app/Services/Inventory/BatchVariantAuditService.php": {
+      "sha256": "413369d9deb2e9f7fab4ccb001b1df123428726006b8d1f4e6f0ae6f893ca879",
+      "size": 6252
+    },
+    "app/Services/Inventory/InventoryCostingService.php": {
+      "sha256": "96c10a0a4d2adb18e85167795a24ad878f708321b044fbb069e90f0f542b219f",
+      "size": 15853
+    },
+    "app/Services/ProductService.php": {
+      "sha256": "7b61f2dc2a50982531712c8a20cc6537b2deddbfcf497a466c3610892dd059aa",
+      "size": 4188
+    },
+    "app/Http/Controllers/InventoryController.php": {
+      "sha256": "2fdfb53c1a77ea261117157dd2d3ca129d66914d1ada2c185b03e658a75d3b71",
+      "size": 21812
+    },
+    "app/Http/Controllers/ProductVariantController.php": {
+      "sha256": "96ff098eabb618bf4f38e3e05b4484ede751ea3d38f190d0c2bfb51afa282833",
+      "size": 6252
+    },
+    "app/Http/Controllers/ProductController.php": {
+      "sha256": "50df58a9a79236eef8c0f011f2a48052b86e4d4cb746f82eeeb3a6ab2f6519f1",
+      "size": 3313
+    },
+    "resources/views/inventory/batches.blade.php": {
+      "sha256": "442c72c56eb6b0b70d44a83b6c2d5fd6258617de55bc2835a071c06c721fa71d",
+      "size": 4665
+    },
+    "resources/views/inventory/expiry.blade.php": {
+      "sha256": "b238fa70553e71665ef473a8efa2ed4ac58467a5a28620004baba98457d84ecc",
+      "size": 2403
+    },
+    "routes/console.php": {
+      "sha256": "92bca958c45fe280f9763c21226ab38ad8d26520f33bc971c701822a757a88fe",
+      "size": 26660
+    },
+    "scripts/verify_variant_batch_patch.php": {
+      "sha256": "fafe4dab98ec99a931a4573b4de18dd0938ac999ad4e8fe08d2ec6002d1bf7d9",
+      "size": 1624
+    },
+    "tests/Feature/ProductVariantBatchExpiryRegressionTest.php": {
+      "sha256": "119e42eb3be19fc00ad3009dc694d55b6d5266c0721b6f5cd263f0df0f326d9f",
+      "size": 6817
+    },
+    "PRODUCT_VARIANT_BATCH_EXPIRY_QA_RELEASE_2026_10_30.md": {
+      "sha256": "a2c01fe9d1019025ddb2289d19467e97e8f332ec7af2cdfac1ae115941ef196c",
+      "size": 7805
+    }
+  },
+  "install": "Apply patch at ERP root after full project/database backup; do not overwrite .env or APP_KEY.",
+  "qa": "Static checks/route validation done; staging MySQL/browser QA outstanding."
+}

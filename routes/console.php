@@ -426,3 +426,96 @@ Artisan::command('erp:dues-loans:audit {--as-of= : YYYY-MM-DD (defaults today)} 
     }
     return $result['pass'] ? 0 : 1;
 })->purpose('Read-only audit of due balances, collections, loan principal, interest, schedule and GL journals');
+
+// Barcode catalogue QA; does not depend on the POS checkout-requests migration.
+Artisan::command('erp:barcode:audit {--json : Output machine-readable audit}', function (\App\Services\Barcode\BarcodeAuditService $service) {
+    $result = $service->run();
+    if ($this->option('json')) {
+        $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    } else {
+        $this->info('Barcode catalogue audit: '.($result['pass'] ? 'PASS' : 'ISSUES FOUND'));
+        $this->line('Active POS stock products: '.$result['checked_active_stock_products']);
+        foreach ($result['issues'] as $name => $count) {
+            $this->line("{$name}: {$count}");
+        }
+        $this->line('Review details: php artisan erp:barcode:audit --json');
+    }
+    return $result['pass'] ? 0 : 1;
+})->purpose('Read-only scan-code ambiguity and Code 39 label printability audit');
+
+// READ ONLY: product variants, batch traceability, expiry status and stock linkage.
+Artisan::command('erp:variants-batches:audit {--as-of= : YYYY-MM-DD cutoff} {--json : JSON output}',
+    function (\App\Services\Inventory\BatchVariantAuditService $service) {
+        $date = (string) ($this->option('as-of') ?: now()->toDateString());
+        $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+        if (! $parsed || $parsed->format('Y-m-d') !== $date) {
+            $this->error('Date must be valid YYYY-MM-DD.');
+            return 2;
+        }
+        $result = $service->run($date);
+        if ($this->option('json')) {
+            $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        } else {
+            $this->info('Read-only product variant and batch audit: '.($result['pass'] ? 'PASS' : 'REVIEW REQUIRED'));
+            foreach ($result['counts'] as $label => $count) $this->line($label.': '.$count);
+            foreach ($result['issues'] as $label => $samples) $this->warn('ISSUE '.$label.': '.json_encode($samples));
+            foreach ($result['alerts'] as $label => $samples) $this->warn('ALERT '.$label.': '.json_encode($samples));
+        }
+        return $result['pass'] ? 0 : 1;
+    }
+)->purpose('Read-only batch/expiry/variant integrity QA');
+
+// READ ONLY: FIFO receipt layers, moving weighted average and recorded valuation.
+Artisan::command('erp:costing:audit {--json : Print valuation and layer coverage as JSON}',
+    function (\App\Services\Inventory\InventoryValuationService $valuation,
+              \App\Services\Inventory\InventoryAuditService $inventory) {
+        $snapshot = $valuation->snapshot();
+        $audit = $inventory->run();
+        $result = [
+            'pass' => $snapshot['complete'] && $audit['checks']['warehouse_matches_cost_layers']
+                && $audit['checks']['fifo_layers_valid']
+                && $audit['checks']['gl_inventory_matches_stock_valuation'],
+            'stock_valuation_complete' => $snapshot['complete'],
+            'cost_layer_review_rows' => $snapshot['review_count'],
+            'reportable_valuation_bdt' => $snapshot['total_value'],
+            'inventory_to_gl_difference_bdt' => $audit['values']['inventory_to_gl_difference'],
+            'layer_quantity_matched' => $audit['checks']['warehouse_matches_cost_layers'],
+            'invalid_cost_layers' => $audit['values']['invalid_cost_layers'],
+            'review_examples' => $snapshot['rows']->where('status', 'review_required')->take(15)->values()->all(),
+        ];
+        if ($this->option('json')) {
+            $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        } else {
+            $this->info('FIFO / Weighted Average costing: '.($result['pass'] ? 'PASS' : 'REVIEW REQUIRED'));
+            $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        }
+        return $result['pass'] ? 0 : 1;
+    }
+)->purpose('Read-only FIFO cost-layer, weighted average, and inventory-to-GL audit');
+
+// READ ONLY: validate expense drafts, posted journals, account types and linked cash/bank postings.
+Artisan::command('erp:expenses:audit {--as-of= : Optional YYYY-MM-DD cutoff} {--json : Output JSON}',
+    function (\App\Services\Expenses\ExpenseManagementAuditService $service) {
+        $date = $this->option('as-of') ?: null;
+        if ($date !== null) {
+            $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+            if (!$parsed || $parsed->format('Y-m-d') !== $date) {
+                $this->error('--as-of must be a valid YYYY-MM-DD date.');
+                return 2;
+            }
+        }
+        $report = $service->run($date);
+        if ($this->option('json')) {
+            $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        } else {
+            $this->info('Read-only Expense Management Audit: ' . ($date ?? 'all dates'));
+            foreach ($report['counts'] as $label => $value) {
+                $this->line($label . ': ' . $value);
+            }
+            foreach ($report['samples'] as $sample) {
+                $this->warn($sample['type'] . ': ' . $sample['reference']);
+            }
+        }
+        return $report['pass'] ? 0 : 1;
+    }
+)->purpose('Read-only Expense Management audit (drafts, GL, cash/bank and duplicate postings)');

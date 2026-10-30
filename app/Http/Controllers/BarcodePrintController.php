@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Services\Barcode\Code39Barcode;
+use App\Services\Barcode\BarcodeCatalogService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 class BarcodePrintController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, Code39Barcode $barcode, BarcodeCatalogService $catalog)
     {
         $products = Product::with(['unit','category'])
             ->when($request->filled('q'), function ($q) use ($request) {
@@ -22,12 +23,27 @@ class BarcodePrintController extends Controller
                 });
             })
             ->where('is_active', true)
+            ->where('track_stock', true)
             ->orderBy('name')->paginate(50)->withQueryString();
 
-        return view('settings.barcode-print', compact('products'));
+        // Show the EXACT value to be printed, including the generated-code fallback.
+        $labelInfo = [];
+        foreach ($products as $product) {
+            try {
+                $printable = $catalog->printableCode($product, $barcode);
+                $labelInfo[$product->id] = [
+                    'code' => $printable['code'], 'source' => $printable['source'],
+                    'minimum_width' => $barcode->minimumLabelWidthMm($printable['code']),
+                ];
+            } catch (InvalidArgumentException $exception) {
+                $labelInfo[$product->id] = ['error' => $exception->getMessage()];
+            }
+        }
+
+        return view('settings.barcode-print', compact('products','labelInfo'));
     }
 
-    public function preview(Request $request, Code39Barcode $barcode)
+    public function preview(Request $request, Code39Barcode $barcode, BarcodeCatalogService $catalog)
     {
         $data = $request->validate([
             'products' => ['required','array','min:1'],
@@ -38,6 +54,13 @@ class BarcodePrintController extends Controller
             'label_height' => ['required','numeric','min:20','max:80'],
         ]);
 
+        // A very short label cuts off product name/price or the barcode itself.
+        $minHeight = ($request->boolean('show_name') && $request->boolean('show_price')) ? 28
+            : (($request->boolean('show_name') || $request->boolean('show_price')) ? 24 : 20);
+        if ((float)$data['label_height'] < $minHeight) {
+            throw ValidationException::withMessages(['label_height' => __('Label height must be at least :height mm for the selected text options.', ['height' => $minHeight])]);
+        }
+
         $selected = collect($data['products'])->filter(fn($copies) => (int) $copies > 0);
         if ($selected->isEmpty()) {
             throw ValidationException::withMessages(['products'=>__('Select at least one product and enter a label quantity.')]);
@@ -46,7 +69,7 @@ class BarcodePrintController extends Controller
         if ($selected->sum(fn ($copies) => (int) $copies) > 500) {
             throw ValidationException::withMessages(['products' => __('Print no more than 500 labels in one batch.')]);
         }
-        $products = Product::where('is_active', true)
+        $products = Product::where('is_active', true)->where('track_stock', true)
             ->whereIn('id', $selected->keys()->map(fn ($id) => (int) $id))
             ->get()->keyBy('id');
         $labels = [];
@@ -55,9 +78,16 @@ class BarcodePrintController extends Controller
             if (! $product) {
                 throw ValidationException::withMessages(['products' => __('A selected product is unavailable. Reload and try again.')]);
             }
-            $value = $product->barcode ?: $product->sku ?: $product->code ?: ('P'.$product->id);
             try {
-                $normalized = $barcode->normalize($value);
+                $printable = $catalog->printableCode($product, $barcode);
+                $normalized = $printable['code'];
+                $collision = $catalog->firstCollision($normalized, (int) $product->id);
+                if ($collision) {
+                    throw ValidationException::withMessages(['products' => __('Cannot print :product: its scanned value :code also belongs to product #:id (:other). Fix the identifiers before printing.', [
+                        'product' => $product->name, 'code' => $normalized,
+                        'id' => $collision->id, 'other' => $collision->name,
+                    ])]);
+                }
                 $minimumWidth = $barcode->minimumLabelWidthMm($normalized);
                 if ((float) $data['label_width'] < $minimumWidth) {
                     throw ValidationException::withMessages(['label_width' => __('Label width for :product must be at least :width mm for a scannable Code 39 barcode.', [
@@ -71,7 +101,7 @@ class BarcodePrintController extends Controller
                 ])]);
             }
             for ($i = 0; $i < (int) $copies; $i++) {
-                $labels[] = ['product' => $product, 'value' => $normalized, 'svg' => $svg];
+                $labels[] = ['product' => $product, 'value' => $normalized, 'source' => $printable['source'], 'svg' => $svg];
             }
         }
 

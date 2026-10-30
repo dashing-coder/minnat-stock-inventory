@@ -1,0 +1,50 @@
+M/S Afrin Traders ERP - Seller Control Release QA
+Date: 2026-09-28
+
+Implemented client requirements
+--------------------------------
+1. Admin/Super Admin retain full permission control, including settings.edit.
+2. Total Cash is calculated only for Admin/Super Admin dashboard requests and is not passed to other roles.
+3. Dedicated Seller role added with only:
+   - sales.view
+   - sales.create
+   - sales.post
+   - customer_payments.view
+   - customer_payments.create
+4. Seller sales list is scoped server-side to authenticated Seller + current date.
+5. Seller receipt list is scoped server-side to authenticated Seller + current date.
+6. Seller cannot backdate/future-date sales or receipt transactions.
+7. Seller cannot access another seller's sale through a direct URL.
+8. Seller receipts must reference the Seller's own posted sale.
+9. Seller ID (SEL-xxxxx) is generated automatically when the Seller role is assigned.
+10. Seller dashboard includes Today Sales, Today Cash, Today Receipts, Today Due, Outstanding Due, Sales References, and transaction records.
+11. Admin Seller Accounts page supports per-seller daily accounting records and date selection.
+12. English + Bangla translation strings added for the Seller workflow.
+
+Static / database QA performed
+------------------------------
+- 150 PHP files linted successfully with php -l.
+- 83 Blade templates compiled with Laravel BladeCompiler and the compiled PHP passed php -l.
+- Relevant routes resolved successfully: dashboard, seller-accounts.index, seller-accounts.show, sales.index, sales.create, customer-payments.create.
+- Laravel router contains 206 routes in this build.
+- Bundled SQLite database: 55 tables.
+- Bundled SQLite database: seller_code column present on users.
+- Roles: 10, including Seller.
+- Permissions: 130, including seller_accounts.view.
+- Seller role has exactly the 5 intended operational permissions listed above.
+- Seller role has no settings/accounting/report/purchase/user-management permissions.
+- Admin has settings.view, settings.edit and seller_accounts.view.
+- Super Admin has seller_accounts.view.
+- SQLite foreign-key check: 0 violations.
+
+Runtime test limitation in this build environment
+-------------------------------------------------
+The container PHP runtime is missing dom, mbstring, xmlwriter and PDO SQLite extensions, so PHPUnit / full Laravel database HTTP tests could not be executed here. A regression test file is included at tests/Feature/SellerAccessControlTest.php for execution on the deployment server or normal development environment.
+
+Recommended post-deployment verification
+----------------------------------------
+php artisan migrate --force
+php artisan db:seed --class=RolePermissionSeeder --force
+php artisan permission:cache-reset
+php artisan optimize:clear
+php artisan test --filter=SellerAccessControlTest

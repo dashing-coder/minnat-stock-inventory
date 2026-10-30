@@ -1,0 +1,41 @@
+M/S Afrin Traders ERP — Bills Complete QA
+Date: 2026-10-22
+Baseline: afrintraders-client-ledger-complete-final.zip
+
+REQUESTED BILLS REQUIREMENTS
+[PASS] Product Purchase
+[PASS] Product Sell
+[PASS] Bill Receive Payment
+[PASS] Money Transactions
+
+MONEY TRANSACTIONS
+[PASS] /money-transactions route
+[PASS] /money-transactions/create route
+[PASS] POST /money-transactions route
+[PASS] /money-transactions/export CSV route
+[PASS] /money-transactions/{journal}/print voucher route
+[PASS] Receive double-entry mapping
+[PASS] Payment double-entry mapping
+[PASS] Cash/Bank transfer double-entry mapping
+[PASS] Active Cash/Bank validation
+[PASS] Same-account transfer blocked
+[PASS] Same Cash/Bank and counter-account posting blocked
+[PASS] System control accounts protected from generic postings
+[PASS] Date/type/account/search filters
+[PASS] Summary totals
+[PASS] CSV export
+[PASS] Printable voucher
+[PASS] Existing journal permissions reused
+[PASS] EN/BN translation JSON valid
+
+REGRESSION QA
+[PASS] 156 application/route/migration/seeder PHP files linted — 0 syntax errors
+[PASS] 109/109 Blade templates compiled
+[PASS] 109/109 compiled Blade PHP files linted — 0 syntax errors
+[PASS] 0 risky inline @php(...) Blade patterns
+[PASS] 5 Money Transactions routes registered
+[PASS] 243 total application routes registered
+[PASS] No database migration/schema change required
+
+LIMITATION
+Database-backed HTTP posting was not executed in this workspace because the available PHP runtime exposes PDO core but no PDO database driver. Route registration, controller PHP syntax, Blade compilation, compiled-view PHP syntax and static accounting-flow checks passed.

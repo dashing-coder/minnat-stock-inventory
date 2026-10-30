@@ -1,0 +1,31 @@
+{
+  "release": "2026-10-28-role-permission-access-v1",
+  "base": "afrin_traders_erp_pos_barcode_fixed_2026_10_28.zip",
+  "database_migration_required": false,
+  "live_database_modified": false,
+  "http_database_integration_tested": false,
+  "php_lint_files": 375,
+  "php_lint_pass": 375,
+  "laravel_routes": 321,
+  "permission_smoke_checks": 18,
+  "changes": {
+    "app/Support/RoleSecurity.php": "8ae4ee953f890e74b4d3037817901e15a65b62c7af2d2a0f7ca03e12e0b452f9",
+    "app/Providers/AppServiceProvider.php": "19d44c62390a69db88699eade1d5f363921e4ef609bce0f5397ef85b17fe2593",
+    "app/Http/Requests/UserRequest.php": "ed4306ac5bce1931f994607da11d10371abe8e0bc726108947cef4eff00c0f85",
+    "app/Http/Controllers/UserController.php": "46c3911c3fe9d63f21fdca42aa0eac7e6e132c191f95208c3dbf04b8ed16c937",
+    "app/Http/Controllers/RoleController.php": "9010996395fe510e62e870abe9dd4493474b8513815170a38fb5f79fd86d4c67",
+    "app/Http/Controllers/UserModuleController.php": "92c2761576bea45f3c07b858a4f3a2cf3fb74417c0efdbb3bbf664028fa4a7fc",
+    "app/Services/Security/UserPermissionAuditService.php": "0314a2f83b2f2d704f6267880c9876b8e4f6a300ee1c7cbb42ae998f8cf8b10d",
+    "database/seeders/RolePermissionSeeder.php": "8d157095d3c335c631e82caa1885d971809052814a044641b585a8a10fdb19bf",
+    "routes/console.php": "07fa52b130fd42e8da17b16f905d49530290e185c7f87234600360014411b40b",
+    "resources/views/settings/user-modules-edit.blade.php": "5ffa4e955217e81d6fa131de2a32de0261af87138c1dbc4d63639a58589f3e91",
+    "resources/views/roles/index.blade.php": "a99635e6f8bb4232daba9f8f0ed59f27725bf81e65ebeec4cc92360a5471a2e2",
+    "tests/Feature/UserRolePermissionRegressionTest.php": "b40f2e0c746167e216b4c4849f3e1e23236e9dcf590ce9f00875a9cf5e5ac3ee",
+    "USER_PERMISSIONS_SECURITY_RELEASE_NOTES_2026_10_28.md": "80df2304387f03111c52447f39572db697b3dabf5bb10a42d1cb408d87959d3f"
+  },
+  "warnings": [
+    "Database role associations are unchanged until the explicit erp:permissions:enforce --apply command is run in the users environment.",
+    "Database and HTTP integration tests were unavailable due to missing runtime PHP extensions.",
+    "The complete source distribution does not include .env, runtime logs or a SQL business-data dump."
+  ]
+}

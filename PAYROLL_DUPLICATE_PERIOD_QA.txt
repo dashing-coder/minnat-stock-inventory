@@ -1,0 +1,30 @@
+M/S Afrin Traders ERP - Payroll Duplicate Period Fix QA
+========================================================
+
+Baseline:
+- afrintraders-stock-validation-final.zip
+
+Changed files:
+- app/Http/Controllers/PayrollController.php
+- app/Services/Payroll/PayrollService.php
+- resources/views/payrolls/form.blade.php
+- lang/en.json
+- lang/bn.json
+
+Validation performed:
+- 172 project PHP files passed `php -l`.
+- 84/84 Blade templates compiled with the project's actual Laravel BladeCompiler.
+- 84/84 compiled Blade PHP files passed `php -l`.
+- Payroll form JavaScript passed `node --check` after Blade placeholders were normalized for static syntax validation.
+- `php artisan route:list --name=payrolls` succeeded and all 7 payroll routes remain registered.
+
+Functional logic verified in source:
+- Controller rejects an existing payroll period through Laravel validation.
+- Form warns immediately for periods already in payroll_runs and disables Generate.
+- Service duplicate-period fallback uses ValidationException, not RuntimeException.
+- DB unique constraint on payroll_runs.period remains the final concurrency safeguard.
+- Duplicate-key race for the period index is converted to validation feedback.
+- No database migration is required.
+
+Environment limitation:
+- The container PHP runtime has PDO core but no PDO MySQL/SQLite driver, so a live database-backed HTTP feature test could not be executed here.

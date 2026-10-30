@@ -1,0 +1,21 @@
+{
+  "line_count": 103,
+  "debits": "12808594.03",
+  "credits": "12808594.03",
+  "trial_difference": "0.00",
+  "cash_bank": "1530572.00",
+  "pnl_income": "3516931.98",
+  "pnl_expense": "1257139.99",
+  "pnl_profit": "2259791.99",
+  "assets": "4515241.99",
+  "liabilities": "755450.00",
+  "equity": "1500000.00",
+  "balance_sheet_difference": "0.00",
+  "ar_gl": "315584.98",
+  "ar_subledger": "315584.98",
+  "ar_difference": "0.00",
+  "ap_gl": "245450.00",
+  "ap_subledger": "245450.00",
+  "ap_difference": "0.00",
+  "unbalanced_journals": []
+}

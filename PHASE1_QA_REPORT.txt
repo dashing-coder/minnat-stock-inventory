@@ -1,0 +1,55 @@
+M/S AFRIN TRADERS ERP — PHASE 1 QA REPORT
+Date: 2026-10-22
+Baseline: user-uploaded afrintraders.zip + intrigue_erp_system.sql
+
+FEATURES IMPLEMENTED
+1. Delivery Challan
+   - Route: GET /sales/{sale}/challan
+   - Controller: SaleController@challan
+   - View: resources/views/sales/challan.blade.php
+   - Sale details include Print Challan action.
+
+2. Cashbook
+   - Route: GET /reports/cashbook
+   - Date range + Cash/Bank account filter
+   - Opening, Cash In, Cash Out, Closing, Running Balance
+   - Print + CSV export
+
+3. Multiple Pricing in Sales
+   - Price types: Retail / Wholesale / Special
+   - Retail => selling_price
+   - Wholesale => wholesale_price, fallback selling_price
+   - Special => minimum_selling_price, fallback selling_price
+   - Selected price type persisted in sale_items.price_type
+
+4. Auto-Reorder Suggestions
+   - Route: GET /inventory/reorder-suggestions
+   - Warehouse / Category / Brand filters
+   - Suggested quantity based on available stock, reorder/minimum threshold and maximum stock target
+   - Estimated reorder cost + CSV export
+
+STATIC QA
+- PHP files linted: 156
+- PHP syntax errors: 0
+- Blade templates compiled: 87
+- Compiled Blade syntax errors: 0
+- Laravel routes registered: 207 total
+- New routes verified: sales.challan, reports.cashbook, inventory.reorder-suggestions
+- Sales JavaScript syntax: PASS (node --check)
+- lang/en.json: valid, 780 entries
+- lang/bn.json: valid, 780 entries
+
+DATABASE QA
+- New Laravel migration PHP syntax: PASS
+- MySQL production patch included: database/PHASE1_2026_10_22_MYSQL_PATCH.sql
+- Runtime migration execution was NOT performed in this container because PHP reports zero PDO database drivers (PDO::getAvailableDrivers() = []).
+- Production database change required: add sale_items.price_type (VARCHAR(20), default 'retail').
+
+DEPLOYMENT
+Preferred:
+  php artisan migrate --force
+  php artisan optimize:clear
+
+Alternative when Laravel migrations cannot be run:
+  Apply database/PHASE1_2026_10_22_MYSQL_PATCH.sql
+  php artisan optimize:clear

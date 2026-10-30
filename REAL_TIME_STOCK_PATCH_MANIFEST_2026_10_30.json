@@ -1,0 +1,18 @@
+{
+  "base": "afrin_traders_erp_final_audited_release_2026_10_28.zip",
+  "date": "2026-10-30",
+  "description": "Real-time warehouse stock polling, available-based statuses, alert corrections, reservation audit and regression tests",
+  "files_sha256": {
+    "app/Support/StockLevel.php": "1c74068f1b25c3fe47717b6ab8bf26158a54b13e085144274c335c619687ce80",
+    "app/Services/Inventory/InventoryService.php": "0a066555ebf8ec3b7115ef0846fe52b48e6310982c64df0f2a00fea85877732d",
+    "app/Services/Inventory/InventoryAuditService.php": "a063a0d8a02815ff9286389aedf79e52b60a954098b0f53869fe12000d6a96ce",
+    "app/Http/Controllers/InventoryController.php": "566d9401d2ed092a853c2424265a78ed7b2ac441a85d95187539818cad573771",
+    "routes/web.php": "30c2b62d44b97830eedd598cc0b0f61ab0d67ba8923bb842f84ea2f0d5f67caf",
+    "resources/views/inventory/index.blade.php": "58761494ef41e943a7aa98fec7e0bbaed0b59ecdcfd660c52ab4907010c452aa",
+    "tests/Feature/RealTimeStockManagementTest.php": "dc816c8b85d5029bfa91a1264b4f9b09fd4a2372458f57613b0ac666c7852be1",
+    "scripts/verify_realtime_stock_patch.php": "d9d8664cc2e08d54b4f07fd64d02c80ab1ee2b7b02834575de5fb52ed6d1e077",
+    "REAL_TIME_STOCK_MANAGEMENT_RELEASE_NOTES_2026_10_30.md": "cc87d5b2dd8f8553868a73ab0a823652c0124ab4bc36cdb6541300ecb0689814"
+  },
+  "needs_migration": false,
+  "live_mysql_qa_completed": false
+}

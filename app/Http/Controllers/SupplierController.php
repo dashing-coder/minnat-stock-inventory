@@ -7,6 +7,8 @@ use App\Models\Supplier;
 use App\Models\SupplierGroup;
 use App\Services\SupplierService;
 use Illuminate\Http\Request;
+use App\Services\PartyDeletionGuard;
+use Illuminate\Support\Facades\DB;
 
 class SupplierController extends Controller
 {
@@ -15,6 +17,8 @@ class SupplierController extends Controller
     public function index(Request $request)
     {
         $suppliers = Supplier::with('group')
+            ->withSum('ledgerEntries as ledger_debit', 'debit')
+            ->withSum('ledgerEntries as ledger_credit', 'credit')
             ->when($request->filled('q'), fn($q)=>$q->where(function($x) use ($request) {
                 $t=$request->q;
                 $x->where('name','like',"%{$t}%")->orWhere('code','like',"%{$t}%")
@@ -54,7 +58,7 @@ class SupplierController extends Controller
     {
         return view('suppliers.form', [
             'supplier'=>$supplier,
-            'groups'=>SupplierGroup::where('is_active',true)->orderBy('name')->get(),
+            'groups'=>SupplierGroup::query()->where('is_active',true)->orWhere('id', $supplier->supplier_group_id)->orderBy('name')->get(),
         ]);
     }
 
@@ -64,10 +68,15 @@ class SupplierController extends Controller
         return redirect()->route('suppliers.show',$supplier)->with('success',__('Supplier updated successfully.'));
     }
 
-    public function destroy(Supplier $supplier)
+    public function destroy(Supplier $supplier, PartyDeletionGuard $guard)
     {
-        abort_if($supplier->ledgerEntries()->exists(),422,__('Supplier has ledger transactions. Set the supplier inactive instead.'));
-        $supplier->delete();
+        // A soft delete is not protected by SQL foreign-key restrictions. Lock the
+        // party and refuse deletion if any historical or draft document exists.
+        DB::transaction(function () use ($supplier, $guard) {
+            $locked = Supplier::query()->lockForUpdate()->findOrFail($supplier->id);
+            $guard->assertSupplierCanBeDeleted($locked);
+            $locked->delete();
+        });
         return redirect()->route('suppliers.index')->with('success',__('Supplier deleted.'));
     }
 }

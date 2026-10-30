@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Support\RoleSecurity;
 
 class UserRequest extends FormRequest
 {
@@ -18,8 +19,31 @@ class UserRequest extends FormRequest
             function ($validator): void {
                 $roles = (array) $this->input('roles', []);
 
-                if (in_array('Seller', $roles, true) && count($roles) > 1) {
-                    $validator->errors()->add('roles', __('Seller must be assigned as a standalone role.'));
+                foreach (RoleSecurity::CORE_ROLES as $core) {
+                    if (in_array($core, $roles, true) && count($roles) > 1) {
+                        $validator->errors()->add('roles', __('Administrator, Seller and Sales Executive roles must be standalone.'));
+                        break;
+                    }
+                }
+
+                $actor = $this->user();
+                $subject = $this->route('user');
+                $isSelf = $subject && $actor && (int) $subject->id === (int) $actor->id;
+                $unchangedOwnRoles = false;
+                if ($isSelf) {
+                    $existing = $subject->getRoleNames()->sort()->values()->all();
+                    $requested = collect($roles)->sort()->values()->all();
+                    $unchangedOwnRoles = ($existing === $requested);
+                    if (!$unchangedOwnRoles || $this->input('status') !== 'active') {
+                        $validator->errors()->add('roles', __('You cannot change your own roles or deactivate your own account.'));
+                    }
+                }
+
+                foreach ($roles as $role) {
+                    if (!is_string($role) || !$actor || (!$unchangedOwnRoles && !RoleSecurity::mayAssign($actor, $role))) {
+                        $validator->errors()->add('roles', __('You cannot assign one or more of the selected roles.'));
+                        break;
+                    }
                 }
             },
         ];

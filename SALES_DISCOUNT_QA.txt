@@ -1,0 +1,39 @@
+M/S AFRIN TRADERS ERP — SALES DISCOUNT TYPE UPDATE QA
+Date: 2026-09-29
+
+IMPLEMENTED
+- Line discount type: Fixed Amount or Percentage
+- Discount value preserved separately from calculated discount amount
+- Existing sale_items.discount remains the calculated monetary discount amount
+- Existing discounts migrate as Fixed Amount
+- Percentage discount: subtotal × percentage ÷ 100
+- Fixed discount: direct monetary deduction
+- Instant recalculation on product, quantity, price, discount type, discount value, and tax changes
+- Displays calculated Discount Amount and Final Subtotal per item
+- Live invoice total preview
+- Client-side block when percentage > 100 or fixed discount > product subtotal
+- Server-side authoritative validation for the same limits
+- English + Bangla labels/messages
+
+STATIC QA
+- PHP files checked: 154
+- PHP syntax errors: 0
+- Blade templates compiled: 84
+- Compiled Blade PHP syntax errors: 0
+- Sales form JavaScript syntax check: PASS
+- en.json parse: PASS
+- bn.json parse: PASS
+
+CALCULATION REQUIREMENT
+Example base: 1,000 × 2 = 2,000
+- 10% => discount 200 => final subtotal 1,800
+- Fixed 200 => discount 200 => final subtotal 1,800
+
+DATABASE
+Migration included:
+2026_09_29_003000_add_discount_type_to_sale_items.php
+
+Manual MariaDB/phpMyAdmin patch included:
+SALES_DISCOUNT_MYSQL_PATCH.sql
+
+Note: runtime migration execution was not performed in this QA container because its PHP CLI does not include a PDO-SQLite driver. Migration source itself passed PHP syntax validation.

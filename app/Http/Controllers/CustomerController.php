@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CustomerRequest;
 use App\Models\Customer;
 use App\Models\CustomerGroup;
+use App\Models\MarketHierarchy;
 use App\Services\CustomerService;
 use Illuminate\Http\Request;
+use App\Services\PartyDeletionGuard;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -14,7 +17,9 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
-        $customers = Customer::with('group')
+        $customers = Customer::with(['group','marketHierarchy'])
+            ->withSum('ledgerEntries as ledger_debit', 'debit')
+            ->withSum('ledgerEntries as ledger_credit', 'credit')
             ->when($request->filled('q'), fn($q)=>$q->where(function($x) use ($request) {
                 $t=$request->q;
                 $x->where('name','like',"%{$t}%")->orWhere('code','like',"%{$t}%")
@@ -35,6 +40,7 @@ class CustomerController extends Controller
         return view('customers.form', [
             'customer'=>new Customer(),
             'groups'=>CustomerGroup::where('is_active',true)->orderBy('name')->get(),
+            'markets'=>MarketHierarchy::with('parent')->where('is_active',true)->orderBy('sort_order')->orderBy('name')->get(),
         ]);
     }
 
@@ -46,7 +52,7 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
-        $customer->load('group');
+        $customer->load(['group','marketHierarchy']);
         return view('customers.show',compact('customer'));
     }
 
@@ -54,7 +60,8 @@ class CustomerController extends Controller
     {
         return view('customers.form', [
             'customer'=>$customer,
-            'groups'=>CustomerGroup::where('is_active',true)->orderBy('name')->get(),
+            'groups'=>CustomerGroup::query()->where('is_active',true)->orWhere('id', $customer->customer_group_id)->orderBy('name')->get(),
+            'markets'=>MarketHierarchy::with('parent')->where('is_active',true)->orWhere('id', $customer->market_hierarchy_id)->orderBy('sort_order')->orderBy('name')->get(),
         ]);
     }
 
@@ -64,10 +71,15 @@ class CustomerController extends Controller
         return redirect()->route('customers.show',$customer)->with('success',__('Customer updated successfully.'));
     }
 
-    public function destroy(Customer $customer)
+    public function destroy(Customer $customer, PartyDeletionGuard $guard)
     {
-        abort_if($customer->ledgerEntries()->exists(),422,__('Customer has ledger transactions. Set the customer inactive instead.'));
-        $customer->delete();
+        // A soft delete is not protected by SQL foreign-key restrictions. Lock the
+        // party and refuse deletion if any historical or draft document exists.
+        DB::transaction(function () use ($customer, $guard) {
+            $locked = Customer::query()->lockForUpdate()->findOrFail($customer->id);
+            $guard->assertCustomerCanBeDeleted($locked);
+            $locked->delete();
+        });
         return redirect()->route('customers.index')->with('success',__('Customer deleted.'));
     }
 }

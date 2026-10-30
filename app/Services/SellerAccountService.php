@@ -31,7 +31,8 @@ class SellerAccountService
         $paymentsQuery = CustomerPayment::query()
             ->with(['customer', 'sale', 'account'])
             ->where('created_by', $seller->id)
-            ->whereDate('payment_date', $date);
+            ->whereDate('payment_date', $date)
+            ->where('status', 'posted');
 
         $payments = (clone $paymentsQuery)
             ->latest('id')
@@ -48,14 +49,24 @@ class SellerAccountService
         $walkInCashSales = (float) (clone $salesQuery)
             ->where('status', 'posted')
             ->whereNull('customer_id')
-            ->sum('grand_total');
+            ->selectRaw('COALESCE(SUM(ROUND(grand_total * (CASE WHEN exchange_rate > 0 THEN exchange_rate ELSE 1 END), 2)),0) AS total')
+            ->value('total');
 
         $cashAmount = $cashReceipts + $walkInCashSales;
 
         $allOutstandingDue = (float) Sale::query()
             ->where('created_by', $seller->id)
             ->where('status', 'posted')
-            ->sum('due_amount');
+            ->selectRaw('COALESCE(SUM(ROUND(due_amount * (CASE WHEN exchange_rate > 0 THEN exchange_rate ELSE 1 END), 2)),0) AS total')
+            ->value('total');
+
+        // Seller KPIs must not add invoices denominated in different currencies.
+        // Use the saved exchange rate on each posted invoice, matching base-currency GL posting.
+        $saleTotals = (clone $postedSales)->selectRaw(
+            'COALESCE(SUM(ROUND(grand_total * (CASE WHEN exchange_rate > 0 THEN exchange_rate ELSE 1 END), 2)),0) AS total_sales, '.
+            'COALESCE(SUM(ROUND(paid_amount * (CASE WHEN exchange_rate > 0 THEN exchange_rate ELSE 1 END), 2)),0) AS total_paid, '.
+            'COALESCE(SUM(ROUND(due_amount * (CASE WHEN exchange_rate > 0 THEN exchange_rate ELSE 1 END), 2)),0) AS total_due'
+        )->first();
 
         return [
             'seller' => $seller,
@@ -63,9 +74,9 @@ class SellerAccountService
             'sales' => $sales,
             'payments' => $payments,
             'totals' => [
-                'sales' => (float) (clone $postedSales)->sum('grand_total'),
-                'paid' => (float) (clone $postedSales)->sum('paid_amount'),
-                'due' => (float) (clone $postedSales)->sum('due_amount'),
+                'sales' => (float) ($saleTotals->total_sales ?? 0),
+                'paid' => (float) ($saleTotals->total_paid ?? 0),
+                'due' => (float) ($saleTotals->total_due ?? 0),
                 'receipts' => (float) (clone $paymentsQuery)->sum('amount'),
                 'cash' => $cashAmount,
                 'outstanding_due' => $allOutstandingDue,
@@ -83,9 +94,9 @@ class SellerAccountService
             'date' => $sale->sale_date,
             'reference' => $sale->invoice_no,
             'party' => $sale->customer?->name ?? 'Walk-in Customer',
-            'amount' => (float) $sale->grand_total,
-            'cash' => (float) $sale->paid_amount,
-            'due' => (float) $sale->due_amount,
+            'amount' => round((float) $sale->grand_total * max(0.000001, (float) ($sale->exchange_rate ?? 1)), 2),
+            'cash' => round((float) $sale->paid_amount * max(0.000001, (float) ($sale->exchange_rate ?? 1)), 2),
+            'due' => round((float) $sale->due_amount * max(0.000001, (float) ($sale->exchange_rate ?? 1)), 2),
             'status' => $sale->status,
             'route' => route('sales.show', $sale),
             'sort_at' => $sale->created_at,

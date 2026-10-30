@@ -1,4 +1,6 @@
-@php($currentLocale = app()->getLocale())
+@php
+    $currentLocale = app()->getLocale();
+@endphp
 
 <div class="erp-language-switcher" role="group" aria-label="{{ __('Language') }}">
     <a href="{{ route('language.switch', 'en') }}"

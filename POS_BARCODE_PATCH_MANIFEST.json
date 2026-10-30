@@ -1,0 +1,21 @@
+{
+  "baseline": "afrin_traders_erp_sales_purchase_fixed_2026_10_28.zip",
+  "release": "2026-10-28 POS Barcode",
+  "sha256": {
+    "app/Http/Controllers/PosController.php": "dee0163738150903b317ee8ec831dc0e3c0f5f57387c642fae0b4015924245ec",
+    "app/Http/Controllers/BarcodePrintController.php": "96cf668b53357268b6351c02d3c397ba99593ee6264151049f2ca117c54f087d",
+    "app/Services/Barcode/Code39Barcode.php": "85bf5050da233a2fa6bf095964995e721198caa7a2d93c7da25ec6d864cc1606",
+    "app/Services/Pos/PosAuditService.php": "18393524e75e1015b5f6eff0368c90203a13e488b242daf7b5e404b97527acec",
+    "public/js/afrin-pos-core.js": "5b1818a9e208a18ae14a7dbce5643b3a5fa180b557ad306aa6cc7e35aa9ae187",
+    "resources/views/pos/index.blade.php": "5f3bbe9acb6740808291656c978ec8d564522763df20b2818b5bf98572192052",
+    "resources/views/settings/barcode-print.blade.php": "2b32ba31bea8a60dace218e91e6f805816595513187a53794abc80db8bafd45d",
+    "database/migrations/2026_10_28_060000_create_pos_checkout_requests_table.php": "608e5f1a76ef695d068add3952430f6ac2319f94b01e6c8d418a1334b4b005b1",
+    "routes/web.php": "4586e951aa5bd8ba57e066640cf5416e1f60f1aac2bdb1ab69c7ac41eb582281",
+    "routes/console.php": "5b01006da557dd2646dadac47d7cb3e562baf1e4f3bcecee3490459f733660be",
+    "tests/Feature/PosBarcodeRegressionTest.php": "1cfadc70b73cb672c4eb83bec31fddc1278856efe0df5b6933a087e9bb6b29a6",
+    "tests/Feature/PosCheckoutFeatureTest.php": "ea0932b8b6ada90778e72266d762031f582dea9e6012be31f1c54f2e370fa266",
+    "tests/js/afrin-pos-core.test.cjs": "11833ff589180678f3fd91731ac3dba842f189c2443494ecb09db9d6a7242eb1",
+    "tests/browser/pos_scanner_emulator.py": "38fb834d98a7c14ef5d2af713210298e707f57d563f5102df4498a4e48181329",
+    "POS_BARCODE_ACCURACY_RELEASE_NOTES_2026_10_28.md": "cabb8be91710581c8a35a60b1cca5c3836427305f44c43eeea0f3e0991ad70d3"
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "scope": "Read-only 2026-10-27 SQL export plus Laravel source; not a live database test",
+  "tables_with_insert_rows": 51,
+  "schema_create_table_count": 83,
+  "migration_files": 24,
+  "migration_records": 21,
+  "pending_in_this_export": [
+    "2026_10_22_130000_complete_settings_requirements",
+    "2026_10_23_000000_complete_production_erp_controls",
+    "2026_10_28_060000_create_pos_checkout_requests_table"
+  ],
+  "posted_journal_lines": 103,
+  "posted_total_debit": "12808594.03",
+  "posted_total_credit": "12808594.03",
+  "posted_difference": "0.00",
+  "posted_unbalanced_journal_entries": [],
+  "bank_account_gl_debit_minus_credit": "-1653935.00",
+  "inventory_account_gl_debit_minus_credit": "2669085.01",
+  "stock_valuation_estimate": "1244700.01",
+  "inventory_gl_minus_stock_difference": "1424385.00",
+  "inventory_stock_rows": 543,
+  "stock_movement_rows": 550,
+  "cost_layer_rows": 540,
+  "stock_vs_movement_mismatch_count": 0,
+  "stock_vs_cost_layer_mismatch_count": 0,
+  "stock_movement_mismatch_examples": [],
+  "stock_cost_layer_mismatch_examples": [],
+  "posted_warehouse_transfer_issues": [
+    {
+      "transfer_id": "1",
+      "product_id": "100",
+      "expected": "20.0000",
+      "out": "0",
+      "in": "0"
+    },
+    {
+      "transfer_id": "2",
+      "product_id": "300",
+      "expected": "10.0000",
+      "out": "0",
+      "in": "0"
+    }
+  ],
+  "posted_return_reference_issues": [
+    {
+      "table": "sale_returns",
+      "id": "1",
+      "linked_document_id": "38",
+      "reasons": [
+        "product(s) absent from original: 5"
+      ]
+    },
+    {
+      "table": "sale_returns",
+      "id": "3",
+      "linked_document_id": "1",
+      "reasons": [
+        "party differs",
+        "warehouse differs",
+        "product(s) absent from original: 6"
+      ]
+    },
+    {
+      "table": "purchase_returns",
+      "id": "1",
+      "linked_document_id": "1",
+      "reasons": [
+        "product(s) absent from original: 3"
+      ]
+    }
+  ],
+  "recorded_bank_reconciliations": 0,
+  "recorded_bank_cleared_items": 0,
+  "legacy_role_excess_permissions": [
+    {
+      "role": "Sales Executive",
+      "permission": "customers.edit"
+    },
+    {
+      "role": "Sales Executive",
+      "permission": "customers.delete"
+    },
+    {
+      "role": "Sales Executive",
+      "permission": "sales.edit"
+    },
+    {
+      "role": "Sales Executive",
+      "permission": "sales.delete"
+    },
+    {
+      "role": "Sales Executive",
+      "permission": "sales.approve"
+    },
+    {
+      "role": "Sales Executive",
+      "permission": "sale_returns.delete"
+    },
+    {
+      "role": "Sales Executive",
+      "permission": "quotations.edit"
+    },
+    {
+      "role": "Sales Executive",
+      "permission": "quotations.delete"
+    },
+    {
+      "role": "Sales Executive",
+      "permission": "sale_returns.edit"
+    }
+  ],
+  "source_has_env_example": true,
+  "missing_runtime_dirs": []
+}

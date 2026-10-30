@@ -6,8 +6,16 @@
     $productOptions = $products
         ->map(fn ($product) => [
             'id'          => $product->id,
-            'name'        => $product->name,
+            'name'        => $product->display_name,
+            'sku'         => $product->sku,
+            'code'        => $product->code,
+            'barcode'     => $product->barcode,
             'price'       => (float) $product->selling_price,
+            'prices'      => [
+                'retail'    => (float) $product->selling_price,
+                'wholesale' => (float) ($product->wholesale_price ?? $product->selling_price),
+                'special'   => (float) ($product->minimum_selling_price ?? $product->selling_price),
+            ],
             'track_stock' => (bool) $product->track_stock,
             'stocks'      => $product->warehouseStocks
                 ->mapWithKeys(fn ($stock) => [
@@ -28,8 +36,10 @@
             ?->map(fn ($item) => [
                 'product_id'      => $item->product_id,
                 'quantity'        => (float) $item->quantity,
+                'free_quantity'   => (float) ($item->free_quantity ?? 0),
                 'bundle_quantity' => $item->bundle_quantity !== null ? (float) $item->bundle_quantity : null,
                 'unit_price'      => (float) $item->unit_price,
+                'price_type'      => $item->price_type ?: 'retail',
                 'discount_type'   => $item->discount_type ?: 'fixed',
                 'discount_value'  => $item->discount_value !== null ? (float) $item->discount_value : (float) $item->discount,
                 'discount'        => (float) $item->discount,
@@ -52,11 +62,25 @@
         'aggregateError' => __('Total quantity in this invoice (:requested) exceeds available stock (:available).'),
     ];
 
+    $priceLabels = [
+        'retail' => __('Retail'),
+        'wholesale' => __('Wholesale'),
+        'special' => __('Special'),
+    ];
+
     $searchLabels = [
         'customer' => __('Search customer...'),
         'product' => __('Search product...'),
         'noResults' => __('No matching results'),
         'selectOption' => __('Select an option from the list.'),
+    ];
+
+    $barcodeLabels = [
+        'placeholder' => __('Scan barcode or SKU...'),
+        'notFound' => __('No product found for this barcode or SKU.'),
+        'added' => __('Product added to the sale.'),
+        'incremented' => __('Product quantity increased by 1.'),
+        'empty' => __('Scan or enter a barcode / SKU first.'),
     ];
 @endphp
 
@@ -197,9 +221,27 @@
                 class="form-control"
             >
         </div>
+        <div class="col-md-2"><label class="form-label">{{ __('Currency') }}</label><select name="currency_code" class="form-select" required>@foreach($currencies as $currency)<option value="{{ $currency->code }}" @selected(old('currency_code',$sale?->currency_code ?? 'BDT')===$currency->code)>{{ $currency->code }}</option>@endforeach</select></div>
+        <div class="col-md-2"><label class="form-label">{{ __('Exchange Rate') }}</label><input type="number" step="0.000001" min="0.000001" name="exchange_rate" value="{{ old('exchange_rate',$sale?->exchange_rate ?? 1) }}" class="form-control" required></div>
     </div>
 
     <hr>
+
+    <div class="card border-primary-subtle bg-light mb-3">
+        <div class="card-body py-3">
+            <div class="row g-2 align-items-end">
+                <div class="col-lg-7">
+                    <label class="form-label fw-semibold" for="barcode-scan"><i class="bi bi-upc-scan me-1"></i>{{ __('Barcode Scanner') }}</label>
+                    <div class="input-group">
+                        <input id="barcode-scan" class="form-control" autocomplete="off" placeholder="{{ __('Scan barcode or SKU...') }}" @if(!$editing) autofocus @endif>
+                        <button class="btn btn-outline-primary" type="button" id="barcode-add">{{ __('Add Product') }}</button>
+                    </div>
+                    <div class="form-text">{{ __('USB/Bluetooth barcode scanners can scan directly here. Press Enter to add the product; scanning the same product again increases its quantity.') }}</div>
+                </div>
+                <div class="col-lg-5"><div id="barcode-message" class="small py-2"></div></div>
+            </div>
+        </div>
+    </div>
 
     <div class="d-flex justify-content-between align-items-center">
         <h5 class="mb-0">{{ __('Items') }}</h5>
@@ -212,7 +254,9 @@
                 <tr>
                     <th style="min-width:210px">{{ __('Product') }}</th>
                     <th style="min-width:100px">{{ __('Qty') }}</th>
+                    <th style="min-width:100px">{{ __('Free Qty') }}</th>
                     <th style="min-width:110px">{{ __('Bag / Bundle') }}</th>
+                    <th style="min-width:125px">{{ __('Price Type') }}</th>
                     <th style="min-width:110px">{{ __('Unit Price') }}</th>
                     <th style="min-width:135px">{{ __('Discount Type') }}</th>
                     <th style="min-width:120px">{{ __('Discount Value') }}</th>
@@ -327,7 +371,9 @@ const products = @json($productOptions);
 const existing = @json($existingItems);
 const discountLabels = @json($discountLabels);
 const stockLabels = @json($stockLabels);
+const priceLabels = @json($priceLabels);
 const searchLabels = @json($searchLabels);
+const barcodeLabels = @json($barcodeLabels);
 let idx = 0;
 
 function enhanceSearchableSelect(select, { placeholder = '', includeEmpty = false } = {}) {
@@ -545,9 +591,11 @@ function validateStock() {
     rows.forEach(tr => {
         const productId = String(tr.querySelector('.prod')?.value || '');
         const quantity = numberValue(tr.querySelector('.qty')?.value);
+        const freeQuantity = numberValue(tr.querySelector('.free-qty')?.value);
+        const stockQuantity = quantity + freeQuantity;
 
-        if (productId && quantity > 0) {
-            totals.set(productId, (totals.get(productId) || 0) + quantity);
+        if (productId && stockQuantity > 0) {
+            totals.set(productId, (totals.get(productId) || 0) + stockQuantity);
         }
     });
 
@@ -662,8 +710,16 @@ function recalculateRow(tr) {
     recalculateSummary();
 }
 
+function productPrice(product, priceType) {
+    if (!product) return 0;
+    const prices = product.prices || {};
+    const selected = numberValue(prices[priceType]);
+    return selected > 0 ? selected : numberValue(product.price);
+}
+
 function row(data = {}) {
     const tr = document.createElement('tr');
+    const priceType = data.price_type || 'retail';
     const discountType = data.discount_type || 'fixed';
     const discountValue = data.discount_value ?? data.discount ?? 0;
 
@@ -685,9 +741,20 @@ function row(data = {}) {
             <div class="invalid-feedback stock-error"></div>
         </td>
         <td>
+            <input class="form-control free-qty" type="number" step="0.0001" min="0"
+                   name="items[${idx}][free_quantity]" value="${data.free_quantity ?? 0}">
+        </td>
+        <td>
             <input class="form-control" type="number" step="0.0001" min="0"
                    name="items[${idx}][bundle_quantity]" value="${data.bundle_quantity ?? ''}"
                    placeholder="{{ __('Optional') }}">
+        </td>
+        <td>
+            <select class="form-select price-type" name="items[${idx}][price_type]" required>
+                <option value="retail" ${priceType === 'retail' ? 'selected' : ''}>${escapeHtml(priceLabels.retail)}</option>
+                <option value="wholesale" ${priceType === 'wholesale' ? 'selected' : ''}>${escapeHtml(priceLabels.wholesale)}</option>
+                <option value="special" ${priceType === 'special' ? 'selected' : ''}>${escapeHtml(priceLabels.special)}</option>
+            </select>
         </td>
         <td>
             <input class="form-control price" type="number" step="0.0001" min="0"
@@ -722,10 +789,18 @@ function row(data = {}) {
     tr.querySelector('.prod').addEventListener('change', event => {
         const product = products.find(item => String(item.id) === event.target.value);
         if (product) {
-            tr.querySelector('.price').value = product.price;
+            tr.querySelector('.price').value = productPrice(product, tr.querySelector('.price-type').value);
         }
         recalculateRow(tr);
         validateStock();
+    });
+
+    tr.querySelector('.price-type').addEventListener('change', () => {
+        const product = products.find(item => String(item.id) === tr.querySelector('.prod').value);
+        if (product) {
+            tr.querySelector('.price').value = productPrice(product, tr.querySelector('.price-type').value);
+        }
+        recalculateRow(tr);
     });
 
     ['.price', '.discount-value', '.tax'].forEach(selector => {
@@ -736,6 +811,7 @@ function row(data = {}) {
         recalculateRow(tr);
         validateStock();
     });
+    tr.querySelector('.free-qty').addEventListener('input', validateStock);
 
     tr.querySelector('.discount-type').addEventListener('change', () => recalculateRow(tr));
 
@@ -755,6 +831,76 @@ function row(data = {}) {
     recalculateRow(tr);
     validateStock();
     idx++;
+    return tr;
+}
+
+function normalizeScan(value) {
+    return String(value ?? '').trim().toLowerCase();
+}
+
+const barcodeIndex = new Map();
+products.forEach(product => {
+    [product.barcode, product.sku, product.code].forEach(value => {
+        const key = normalizeScan(value);
+        if (key && !barcodeIndex.has(key)) barcodeIndex.set(key, product);
+    });
+});
+
+function barcodeMessage(message, type = 'success') {
+    const box = document.getElementById('barcode-message');
+    box.className = `small py-2 ${type === 'danger' ? 'text-danger' : 'text-success'}`;
+    box.textContent = message;
+}
+
+function addScannedProduct(rawValue) {
+    const scanInput = document.getElementById('barcode-scan');
+    const key = normalizeScan(rawValue);
+    if (!key) {
+        barcodeMessage(barcodeLabels.empty, 'danger');
+        scanInput.focus();
+        return;
+    }
+
+    const product = barcodeIndex.get(key);
+    if (!product) {
+        barcodeMessage(barcodeLabels.notFound, 'danger');
+        scanInput.select();
+        return;
+    }
+
+    const rows = [...document.querySelectorAll('#items-table tbody tr')];
+    const existingRow = rows.find(tr => String(tr.querySelector('.prod')?.value || '') === String(product.id));
+
+    if (existingRow) {
+        const qty = existingRow.querySelector('.qty');
+        qty.value = String(numberValue(qty.value) + 1);
+        qty.dispatchEvent(new Event('input', { bubbles: true }));
+        barcodeMessage(`${product.name}: ${barcodeLabels.incremented}`);
+    } else {
+        const blankRow = rows.find(tr => !tr.querySelector('.prod')?.value);
+        if (blankRow) {
+            const select = blankRow.querySelector('.prod');
+            select.value = String(product.id);
+            blankRow.querySelector('.qty').value = '1';
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            blankRow.querySelector('.qty').dispatchEvent(new Event('input', { bubbles: true }));
+        } else {
+            row({
+                product_id: product.id,
+                quantity: 1,
+                price_type: 'retail',
+                unit_price: productPrice(product, 'retail'),
+                discount_type: 'fixed',
+                discount_value: 0,
+                tax: 0,
+            });
+        }
+        barcodeMessage(`${product.name}: ${barcodeLabels.added}`);
+    }
+
+    scanInput.value = '';
+    scanInput.focus();
+    validateStock();
 }
 
 enhanceSearchableSelect(document.getElementById('sale-customer'), {
@@ -763,6 +909,13 @@ enhanceSearchableSelect(document.getElementById('sale-customer'), {
 });
 
 document.getElementById('add-item').addEventListener('click', () => row());
+document.getElementById('barcode-add').addEventListener('click', () => addScannedProduct(document.getElementById('barcode-scan').value));
+document.getElementById('barcode-scan').addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        addScannedProduct(event.currentTarget.value);
+    }
+});
 document.querySelectorAll('.invoice-calc').forEach(input => {
     input.addEventListener('input', recalculateSummary);
 });

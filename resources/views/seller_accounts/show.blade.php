@@ -11,7 +11,9 @@
 @endsection
 
 @section('content')
-@php($currency = '৳')
+@php
+    $currency = '৳';
+@endphp
 <form method="GET" class="card card-body shadow-sm border-0 mb-4">
     <div class="row g-2 align-items-end">
         <div class="col-md-4">

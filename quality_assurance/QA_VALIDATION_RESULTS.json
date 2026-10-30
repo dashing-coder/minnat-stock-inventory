@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-28",
+  "source_php_version": "8.4.24",
+  "php_files_linted": 234,
+  "php_syntax_errors": [],
+  "blade_views_compiled": 138,
+  "blade_compiler_errors": [],
+  "compiled_blade_php_files_linted": 138,
+  "compiled_blade_php_errors": [],
+  "laravel_route_count": 321,
+  "pos_js_test_exit": 0,
+  "pos_js_tests_passed": 6,
+  "real_mysql_tests": "NOT_RUN_NO_PDO_MYSQL",
+  "phpunit": "NOT_RUN_MISSING_DOM_MBSTRING_XMLWRITER",
+  "hardware_and_bank_statement": "NOT_RUN_NO_EXTERNAL_ACCESS"
+}

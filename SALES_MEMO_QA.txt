@@ -1,0 +1,42 @@
+M/S AFRIN TRADERS - SALES MEMO RELEASE QA
+==========================================
+
+Baseline
+--------
+Built on the latest bilingual Seller-Control ERP package.
+
+Implemented
+-----------
+- Dynamic printable memo route: /sales/{sale}/memo
+- Sale Details -> Print Memo button
+- English / Bangla memo labels via current site locale
+- Customer name, address, mobile
+- Seller name and Seller ID
+- Product description, optional Bag/Bundle, unit, quantity, rate, amount
+- Existing Shipping reused as Transport Charge
+- New Labor Charge persisted on sales and included in grand total
+- New optional Bundle Quantity persisted per sale item
+- Previous Due derived from customer ledger before the current sale
+- Grand Payable = Previous Due + Current Bill
+- Advance / Deposit = sale paid amount
+- Balance = Previous Due + current sale due amount
+- English/Bangla Taka/Paisa amount-in-words converter
+- Memo company/owner/address/phone/business description/footer settings
+- Existing admin custom memo settings remain editable in Settings
+- Existing seller ownership enforcement also protects memo access
+- Item-level sale discounts are now included correctly in the sale grand total calculation
+
+Validation
+----------
+- PHP source lint: 136 files checked, 0 syntax errors
+- Blade compile: 84 templates checked, 0 compile errors
+- Compiled Blade PHP lint: 84 files checked, 0 syntax errors
+- sales.memo route registered successfully
+- EN/BN JSON translation files parse successfully
+- Amount-in-words smoke test passed in English and Bangla
+
+Environment limitation
+----------------------
+The local QA PHP runtime has PDO core but no PDO MySQL/SQLite driver and no mbstring.
+Therefore the migration was source/lint reviewed but not executed against a local database.
+Run the included Laravel migration on your server, or import SALES_MEMO_MYSQL_PATCH.sql in phpMyAdmin.

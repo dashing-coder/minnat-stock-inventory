@@ -1,0 +1,18 @@
+@extends('layouts.app')
+@section('title',__('Product Delivery').' '.$delivery->delivery_no)
+@section('heading',__('Product Delivery').' '.$delivery->delivery_no)
+@section('content')
+<div class="d-flex flex-wrap gap-2 justify-content-between mb-3"><div><span class="badge {{ $delivery->status==='posted'?'text-bg-success':'text-bg-warning' }}">{{ __(ucfirst($delivery->status)) }}</span></div><div class="d-flex gap-2"><a class="btn btn-outline-secondary" target="_blank" href="{{ route($type==='purchase'?'product-delivery-purchase.print':'product-delivery-sales.print',$delivery) }}"><i class="bi bi-printer"></i> {{ __('Print') }}</a>@if($delivery->status!=='posted')@can($type==='purchase'?'purchases.post':'sales.post')<form method="POST" action="{{ route($type==='purchase'?'product-delivery-purchase.post':'product-delivery-sales.post',$delivery) }}">@csrf<button class="btn btn-success">{{ __('Post Delivery') }}</button></form><form method="POST" action="{{ route($type==='purchase'?'product-delivery-purchase.destroy':'product-delivery-sales.destroy',$delivery) }}" onsubmit="return confirm('{{ __('Delete this draft delivery?') }}')">@csrf @method('DELETE')<button class="btn btn-outline-danger">{{ __('Delete Draft') }}</button></form>@endcan @endif</div></div>
+<div class="card mb-3"><div class="card-body"><div class="row g-3">
+<div class="col-md-3"><div class="small text-muted">{{ __('Type') }}</div><strong>{{ $type==='purchase'?__('Purchase Delivery'):__('Sales Delivery') }}</strong></div>
+<div class="col-md-3"><div class="small text-muted">{{ __('Source Document') }}</div><strong>{{ $type==='purchase'?$delivery->purchase?->purchase_no:$delivery->sale?->invoice_no }}</strong></div>
+<div class="col-md-3"><div class="small text-muted">{{ $type==='purchase'?__('Supplier'):__('Customer') }}</div><strong>{{ $type==='purchase'?($delivery->purchase?->supplier?->name??'-'):($delivery->sale?->customer?->name??__('Walk-in Customer')) }}</strong></div>
+<div class="col-md-3"><div class="small text-muted">{{ __('Warehouse') }}</div><strong>{{ $delivery->warehouse?->name }}</strong></div>
+<div class="col-md-3"><div class="small text-muted">{{ __('Delivery Date') }}</div><strong>{{ $delivery->delivery_date?->format('Y-m-d') }}</strong></div>
+<div class="col-md-3"><div class="small text-muted">{{ __('Reference') }}</div><strong>{{ $delivery->reference ?: '-' }}</strong></div>
+<div class="col-md-3"><div class="small text-muted">{{ __('Driver Name') }}</div><strong>{{ $delivery->driver_name ?: '-' }}</strong></div>
+<div class="col-md-3"><div class="small text-muted">{{ __('Vehicle No') }}</div><strong>{{ $delivery->vehicle_no ?: '-' }}</strong></div>
+</div>@if($delivery->notes)<hr><div>{{ $delivery->notes }}</div>@endif</div></div>
+<div class="card"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>#</th><th>{{ __('Product') }}</th><th>{{ __('SKU') }}</th><th class="text-end">{{ __('Delivered Quantity') }}</th><th>{{ __('Unit') }}</th><th>{{ __('Remarks') }}</th></tr></thead><tbody>@foreach($delivery->items as $i=>$row)<tr><td>{{ $i+1 }}</td><td>{{ $row->product?->display_name }}</td><td>{{ $row->product?->sku }}</td><td class="text-end">{{ number_format((float)$row->quantity,4) }}</td><td>{{ $row->product?->unit?->short_name }}</td><td>{{ $row->remarks }}</td></tr>@endforeach</tbody></table></div></div>
+<div class="alert alert-light border mt-3 mb-0"><i class="bi bi-shield-check me-1"></i>{{ __('Inventory is intentionally not changed by this delivery record; the posted source Purchase/Sale is the inventory and accounting document.') }}</div>
+@endsection

@@ -1,0 +1,54 @@
+{
+  "release": "2026-10-27-bank-reconciliation",
+  "base": "afrin_traders_erp_inventory_fixed_2026_10_27.zip",
+  "changes_schema": false,
+  "archive_reconciliations": 0,
+  "requires_actual_bank_statements": true,
+  "modified_files": [
+    {
+      "path": "app/Services/Accounting/BankReconciliationService.php",
+      "sha256": "ff9b971baace5d925c48ecf4337d4c6868a55bda4b9c75a8beef0d44f0bd5f89",
+      "bytes": 9612
+    },
+    {
+      "path": "app/Services/Accounting/BankReconciliationAuditService.php",
+      "sha256": "a01491518afc97c38e4002ceb15c05324401f7fb0a0b454caac36138821d99ff",
+      "bytes": 10762
+    },
+    {
+      "path": "app/Http/Controllers/ProductionControlController.php",
+      "sha256": "8bf3bc0229c3102ada6012f24d0331c576b0d1de31f75a4c585ebe3d5c3e2de5",
+      "bytes": 30080
+    },
+    {
+      "path": "routes/web.php",
+      "sha256": "82d9dfb1637718f749c7bd971e3fe4c76a40b69ffcd1fe814fa46800631f7afe",
+      "bytes": 45142
+    },
+    {
+      "path": "routes/console.php",
+      "sha256": "41a7b15b5dee67980ce56213a9689575e4f5af465712d71c28265e519f0fbe29",
+      "bytes": 5664
+    },
+    {
+      "path": "resources/views/production-controls/bank.blade.php",
+      "sha256": "4662b8de2fe5d3ef3d5eb2e799c5602382f705e5eba288f4e9c0d10f3d1d4068",
+      "bytes": 10944
+    },
+    {
+      "path": "tests/Feature/BankReconciliationSecurityTest.php",
+      "sha256": "44c79d3afa071073a3023761661f7ce5c152216af9b0a1bc157f1460defd3566",
+      "bytes": 9859
+    },
+    {
+      "path": "BANK_RECON_EXPORT_SNAPSHOT.json",
+      "sha256": "1b8fd56e399921a1689f0b9dc6ef3a9a76f0fd8d9e009a8eee81feb91f90a6b0",
+      "bytes": 1810
+    },
+    {
+      "path": "BANK_RECONCILIATION_FIX_RELEASE_NOTES.md",
+      "sha256": "043f9b56c11bdff2540fed17f9bb66eb8bff990803304c2db6a3b1ca41990f68",
+      "bytes": 7417
+    }
+  ]
+}

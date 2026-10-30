@@ -10,6 +10,10 @@ class PurchaseItem extends Model
         'purchase_id',
         'product_id',
         'quantity',
+        'free_quantity',
+        'batch_no',
+        'manufactured_at',
+        'expiry_date',
         'unit_cost',
         'discount_type',
         'discount_value',
@@ -22,6 +26,9 @@ class PurchaseItem extends Model
     {
         return [
             'quantity' => 'decimal:4',
+            'free_quantity' => 'decimal:4',
+            'manufactured_at' => 'date',
+            'expiry_date' => 'date',
             'unit_cost' => 'decimal:4',
             'discount_value' => 'decimal:4',
             'discount' => 'decimal:2',

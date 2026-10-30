@@ -1,0 +1,39 @@
+M/S Afrin Traders ERP — Daily Performance + Voucher Print QA
+Date: 2026-10-22
+
+Implemented features
+1. Daily Performance report
+   Route: /reports/daily-performance
+   Includes: Sales, Purchases, Customer Collections, Supplier Payments, Operating Expenses,
+   Sales Returns, Purchase Returns, Cash In, Cash Out, Sales Due, Purchase Due, Accounting Income,
+   Accounting Expense and Net Profit for the selected day.
+
+2. Voucher Print
+   Route: /reports/vouchers
+   Print route: /reports/vouchers/{journal}/print
+   Includes: posted voucher register, date/type/text search, A4 printable accounting voucher,
+   automatic voucher title based on transaction type, debit/credit lines and totals.
+   Print Voucher shortcuts were also added to Journal list/detail pages.
+
+Navigation
+- Added Daily Performance under Reports.
+- Added Voucher Print under Reports.
+- Added both cards to All Reports.
+
+Permissions
+- Both report features use existing reports.view permission.
+- Journal shortcut buttons are shown only to users with reports.view.
+
+Database
+- No SQL/database migration required.
+
+Validation
+- 146 application/routes/migration PHP files passed php -l.
+- 101/101 Blade templates compiled and compiled PHP passed syntax validation.
+- 18 report routes registered; reports.daily-performance, reports.vouchers and reports.vouchers.print verified.
+- EN/BN JSON translation files validated.
+- 0 risky inline @php(...) Blade patterns.
+- Existing public JavaScript files passed node --check (where Node is available).
+
+Environment limitation
+- Database-backed HTTP execution was not performed because the container PHP has PDO core but no PDO database driver.

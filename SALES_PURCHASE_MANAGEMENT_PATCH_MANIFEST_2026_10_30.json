@@ -1,0 +1,18 @@
+{
+  "feature": "Sales & Purchase Management",
+  "version": "2026-10-30",
+  "base": "afrin_traders_erp_realtime_stock_fixed_2026_10_30.zip",
+  "files": {
+    "app/Services/Commercial/DocumentAmountGuard.php": "c189719c349813e6b970dbba01f54cc075bb0f6071349ee6bc1aacc9bdd94ea2",
+    "app/Services/Commercial/CommercialAvailabilityGuard.php": "df0c8c6a8f00391174bd2f4339390005d0f3870a0c62adb03bd83d80b8172944",
+    "app/Services/Commercial/PurchaseValueAllocator.php": "68e89d8baf5c6f75fc8246180e65c4c8f90252d45330968a05a129e46df36539",
+    "app/Services/Commercial/SaleService.php": "b5cbba50cb09271988c45f02b4cbe836e3c76924282f92ca3a5afff2ba6edf59",
+    "app/Services/Commercial/PurchaseService.php": "1295c1607858e788d62d67cc3a05dfdd1b560d3c89adf7b4ca0ae6031a2f1cd2",
+    "app/Services/Commercial/SaleReturnService.php": "2bd38404e5aed6365b23e844a1de112e58afdf889c335857c64c6dfd7ad04d21",
+    "app/Services/Commercial/PurchaseReturnService.php": "a1a117ab4b3618f3154e2892c35c483ac71660a2c9d0dfe4ed798fc4e384e558",
+    "app/Services/Commercial/CommercialAuditService.php": "38f7102f856862e0d356824185131763c6ac58b4ec13bec9e634f68f9982c84e",
+    "tests/Feature/SalesPurchaseManagementIntegrityTest.php": "59dbd45a291452c96d4a65c38928c5026be751808aa92cfca4795ec838607b31",
+    "scripts/verify_sales_purchase_integrity.php": "6d7cab55772824ba04648a926e58a991ded271b395c9b9ff20b175f7876a11ec",
+    "SALES_PURCHASE_MANAGEMENT_QA_RELEASE_2026_10_30.md": "11a61a2d46064ff1d8cd36791d802bfba29c8ba07310f4cad8ba9ea40e2454b8"
+  }
+}

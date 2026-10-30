@@ -1,3 +1,0 @@
-@extends('layouts.app')
-@section('title','Settings') @section('heading','System Settings')
-@section('content')<form method="POST" action="{{ route('settings.update') }}">@csrf @method('PUT')@foreach($settings as $group=>$rows)<div class="card card-body mb-3"><h5>{{ ucfirst($group) }}</h5><div class="row g-3">@foreach($rows as $s)<div class="col-md-4"><label>{{ ucwords(str_replace('_',' ',$s->key)) }}</label><input name="settings[{{ $s->key }}]" value="{{ $s->value }}" class="form-control"></div>@endforeach</div></div>@endforeach @can('settings.edit')<button class="btn btn-primary">Save Settings</button>@endcan</form>@endsection

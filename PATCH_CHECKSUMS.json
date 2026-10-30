@@ -1,0 +1,62 @@
+{
+  "project": "M/S Afrin Traders ERP System",
+  "build_date": "2026-10-27",
+  "patch_files": {
+    "config/app.php": {
+      "sha256": "f4c8bc5fd514c0c01a8905f324231e757c3a077955ea6edbb7ac8501c9d7cb58",
+      "bytes": 718
+    },
+    "config/erp_backup.php": {
+      "sha256": "636d7aaef361f724f435aa064f64151da481b68d2b9739736d51cc8c44f1fa80",
+      "bytes": 497
+    },
+    ".env.example": {
+      "sha256": "bfa1168e645afbfbc8495d8917872f634a20b75950dcedbb2ee208e7c4637927",
+      "bytes": 594
+    },
+    "app/Http/Controllers/ProductionControlController.php": {
+      "sha256": "be26c5d637273db09fc753ed5fd9b2c61bae0234b504dd0b91272584ae173131",
+      "bytes": 29636
+    },
+    "app/Http/Controllers/BackupController.php": {
+      "sha256": "2631793f99ecf26571111360f1062058dfda37a4d4e03da2ebb7141aa23b5e78",
+      "bytes": 1878
+    },
+    "app/Services/BackupService.php": {
+      "sha256": "de5ea10d61ed46360f24c3a37d54b7147177a5e317fb4fbb90061e37cb4fd14d",
+      "bytes": 12742
+    },
+    "resources/views/production-controls/bank.blade.php": {
+      "sha256": "6e36f78fa76f933ecfc2ef07a142b6ee995d7becd2683f78c6ea35c030d96f50",
+      "bytes": 3170
+    },
+    "resources/views/backups/index.blade.php": {
+      "sha256": "7edfbb23e2591c42111ca0f79832a03d31e3305e156b3e5d25dc09f9ce7839f5",
+      "bytes": 2895
+    },
+    "routes/web.php": {
+      "sha256": "74761fd182b29d1a54f8890e92fb76a52a02651b6d2740f455edfb0b503547d5",
+      "bytes": 44952
+    },
+    "routes/console.php": {
+      "sha256": "8b1dd48fefb3f63fd10a97e9642cc650746c9153c145308c7964524ae1584c5e",
+      "bytes": 1909
+    },
+    "tests/Feature/BackupSecurityTest.php": {
+      "sha256": "86b19400067ad3e011a4a3ee5d6be47d6a34401ea5e77550016dc88062c6348c",
+      "bytes": 1659
+    },
+    "tests/Feature/BankReconciliationSecurityTest.php": {
+      "sha256": "56d32270bcdd008cfb2c7c74ea7ca2a60c26fd1c6f433ef18fc33072d470ebb3",
+      "bytes": 3367
+    },
+    "deployment/migration_history_reconciliation.sql": {
+      "sha256": "3de2e532227718ff7c838f660bbc02e58f37e4f9e5561af097878db483a606df",
+      "bytes": 5075
+    },
+    "ERP_FIX_RELEASE_NOTES.md": {
+      "sha256": "75b101f50490989ebdbce5f42338db291228c788aeb300d953d7fe967d6ffb54",
+      "bytes": 7596
+    }
+  }
+}

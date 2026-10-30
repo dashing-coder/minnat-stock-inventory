@@ -1,0 +1,37 @@
+AFRIN TRADERS ERP — PHASE 3 QA REPORT
+=====================================
+
+Scope: Complete all eight requirements pending after Phase 2.
+
+Implemented modules:
+- Bonus / Free-item Handling
+- Loan Management + Installment Schedule
+- Product Variants
+- Batch Management
+- Expiry Date Management
+- FIFO / Weighted Average Costing
+- POS Mode
+- Data Backup / Restore + Scheduled Backup
+
+Static validation performed:
+- Application / migration / route PHP syntax lint: PASS (146 files)
+- Laravel route registration: PASS (232 routes)
+- erp:backup console command registration: PASS
+- Blade compileString for all templates: PASS (98 templates)
+- Compiled Blade PHP syntax lint: PASS (98/98 compiled templates)
+- Sales JavaScript syntax: PASS
+- Purchases JavaScript syntax: PASS
+- POS JavaScript syntax: PASS
+- English translation JSON: PASS
+- Bangla translation JSON: PASS
+
+Additional hardening:
+- Duplicate batch numbers per warehouse/product are blocked.
+- Expired batches are not issued from tracked batch stock.
+- Loan interest payment cannot exceed remaining scheduled interest.
+- Existing stock is initialized into cost layers during migration.
+- Dashboard stock value follows FIFO/Weighted Average valuation.
+- Production-style MySQL purchase-item unique index names are handled dynamically by the migration.
+
+Environment limitation:
+The validation container provides PDO core but no PDO MySQL driver and no DOM extension. Therefore the migration could not be executed against a live MySQL database here, and `php artisan view:cache` is unavailable in this container. Migration source and routes were statically validated, while every Blade template was compiled directly with Laravel BladeCompiler and the generated PHP was linted.

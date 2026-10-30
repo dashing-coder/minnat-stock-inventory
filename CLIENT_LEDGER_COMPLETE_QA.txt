@@ -1,0 +1,28 @@
+CLIENT LEDGER COMPLETE - QA REPORT
+==================================
+
+Scope
+-----
+- Dedicated Reports -> Client Ledger
+- Existing Customer Ledger balance correction
+- Searchable customer selector
+- Date and entry-type filters
+- Opening / running / closing balance
+- Print / CSV export
+- Reports menu integration
+- English / Bangla labels
+
+Validation
+----------
+- PHP syntax: 147 application/route/migration PHP files passed
+- Blade compile: 107/107 Blade templates compiled successfully
+- Raw Blade directive scan: 0 failures
+- Laravel route registration: reports.client-ledger registered
+- Existing customers.ledger route remains registered
+- Translation JSON: EN and BN valid
+- Inline @php(...) risky pattern: 0 matches
+- No SQL/database migration required
+
+Environment limitation
+----------------------
+A database-backed HTTP crawl was not executed in this container because the local PHP environment does not provide the PDO MySQL driver. Static source, route, Blade and syntax validation passed.

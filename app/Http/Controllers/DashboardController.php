@@ -5,17 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
-use App\Models\CustomerPayment;
 use App\Models\Expense;
-use App\Models\PayrollPayment;
+use App\Models\InventoryCostLayer;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\PurchaseReturn;
 use App\Models\Sale;
+use App\Models\SaleReturn;
 use App\Models\Supplier;
 use App\Models\SupplierLedgerEntry;
-use App\Models\SupplierPayment;
 use App\Models\SystemNotification;
 use App\Models\WarehouseStock;
+use App\Services\DashboardCalculationService;
 use App\Services\SellerAccountService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -30,34 +31,28 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('Seller')) {
+        // Non-administrators only see activity under their own user ID.
+        // Do not leak global financial metrics to Seller, Sales Executive or custom staff roles.
+        if ($user->hasAnyRole(['Seller', 'Sales Executive']) || ! $user->hasAnyRole(['Super Admin', 'Admin'])) {
             return view('dashboard.seller', $this->sellerAccounts->summary($user));
         }
 
         $today = now()->toDateString();
         $monthStart = now()->startOfMonth()->toDateString();
-        $monthEnd = now()->endOfMonth()->toDateString();
+        [$currentStockValue, $warehouseValues] = $this->inventoryValuationSummary();
+
+        // Gross posted documents less posted returns on their actual transaction dates.
+        // All metrics and chart series use the same as-of date and do not include drafts.
+        $saleReturnsToday = $this->returnTotal(SaleReturn::class, 'return_date', $today, $today);
+        $purchaseReturnsToday = $this->returnTotal(PurchaseReturn::class, 'return_date', $today, $today);
+        $saleReturnsMonth = $this->returnTotal(SaleReturn::class, 'return_date', $monthStart, $today);
+        $purchaseReturnsMonth = $this->returnTotal(PurchaseReturn::class, 'return_date', $monthStart, $today);
 
         $stats = [
-            'today_sales' => (float) Sale::query()
-                ->where('status', 'posted')
-                ->whereDate('sale_date', $today)
-                ->sum('grand_total'),
-
-            'today_purchases' => (float) Purchase::query()
-                ->where('status', 'posted')
-                ->whereDate('purchase_date', $today)
-                ->sum('grand_total'),
-
-            'month_sales' => (float) Sale::query()
-                ->where('status', 'posted')
-                ->whereBetween('sale_date', [$monthStart, $today])
-                ->sum('grand_total'),
-
-            'month_purchases' => (float) Purchase::query()
-                ->where('status', 'posted')
-                ->whereBetween('purchase_date', [$monthStart, $today])
-                ->sum('grand_total'),
+            'today_sales' => $this->documentTotal(Sale::class, 'sale_date', $today, $today) - $saleReturnsToday,
+            'today_purchases' => $this->documentTotal(Purchase::class, 'purchase_date', $today, $today) - $purchaseReturnsToday,
+            'month_sales' => $this->documentTotal(Sale::class, 'sale_date', $monthStart, $today) - $saleReturnsMonth,
+            'month_purchases' => $this->documentTotal(Purchase::class, 'purchase_date', $monthStart, $today) - $purchaseReturnsMonth,
 
             'month_expenses' => (float) Expense::query()
                 ->where('status', 'posted')
@@ -72,14 +67,26 @@ class DashboardController extends Controller
                 ->selectRaw('COALESCE(SUM(credit - debit), 0) AS balance')
                 ->value('balance'),
 
-            'stock_value' => (float) WarehouseStock::query()
-                ->join('products', 'products.id', '=', 'warehouse_stocks.product_id')
-                ->selectRaw('COALESCE(SUM(warehouse_stocks.quantity * products.purchase_price), 0) AS value')
-                ->value('value'),
+            'stock_value' => $currentStockValue,
+            'month_net_profit' => $this->netProfit($monthStart, $today),
 
             'low_stock' => WarehouseStock::query()
                 ->join('products', 'products.id', '=', 'warehouse_stocks.product_id')
-                ->whereColumn('warehouse_stocks.quantity', '<=', 'products.reorder_level')
+                ->whereNull('products.deleted_at')
+                ->where('products.is_active', true)
+                ->where('products.track_stock', true)
+                ->where('products.reorder_level', '>', 0)
+                ->whereRaw('(warehouse_stocks.quantity - COALESCE(warehouse_stocks.reserved_quantity, 0)) <= products.reorder_level')
+                ->count(),
+
+            'excess_stock' => WarehouseStock::query()
+                ->join('products', 'products.id', '=', 'warehouse_stocks.product_id')
+                ->whereNull('products.deleted_at')
+                ->where('products.is_active', true)
+                ->where('products.track_stock', true)
+                ->whereNotNull('products.maximum_stock_level')
+                ->where('products.maximum_stock_level', '>', 0)
+                ->whereRaw('(warehouse_stocks.quantity - COALESCE(warehouse_stocks.reserved_quantity, 0)) > products.maximum_stock_level')
                 ->count(),
 
             'customers' => Customer::query()->where('is_active', true)->count(),
@@ -94,39 +101,24 @@ class DashboardController extends Controller
                 ->join('journal_entries', 'journal_entries.id', '=', 'journal_lines.journal_entry_id')
                 ->join('accounts', 'accounts.id', '=', 'journal_lines.account_id')
                 ->where('journal_entries.status', 'posted')
-                ->where('accounts.is_active', true)
                 ->where('accounts.type', 'asset')
                 ->where('accounts.subtype', 'cash')
                 ->selectRaw('COALESCE(SUM(journal_lines.debit - journal_lines.credit), 0) AS total_cash')
                 ->value('total_cash');
         }
 
-        $salesDaily = Sale::query()
-            ->where('status', 'posted')
-            ->whereBetween('sale_date', [$monthStart, $monthEnd])
-            ->selectRaw('sale_date AS day, SUM(grand_total) AS total')
-            ->groupBy('sale_date')
-            ->orderBy('sale_date')
-            ->pluck('total', 'day');
-
-        $purchaseDaily = Purchase::query()
-            ->where('status', 'posted')
-            ->whereBetween('purchase_date', [$monthStart, $monthEnd])
-            ->selectRaw('purchase_date AS day, SUM(grand_total) AS total')
-            ->groupBy('purchase_date')
-            ->orderBy('purchase_date')
-            ->pluck('total', 'day');
-
-        $chartDates = collect($salesDaily->keys())
-            ->merge($purchaseDaily->keys())
-            ->unique()
-            ->sort()
-            ->values();
-
         $salesPurchaseChart = [
-            'labels' => $chartDates->map(fn ($date) => date('d M', strtotime($date)))->all(),
-            'sales' => $chartDates->map(fn ($date) => (float) ($salesDaily[$date] ?? 0))->all(),
-            'purchases' => $chartDates->map(fn ($date) => (float) ($purchaseDaily[$date] ?? 0))->all(),
+            'labels' => DashboardCalculationService::dateLabels($monthStart, $today),
+            'sales' => DashboardCalculationService::dailyNet(
+                $monthStart, $today,
+                $this->dailyTotals(Sale::class, 'sale_date', $monthStart, $today),
+                $this->dailyTotals(SaleReturn::class, 'return_date', $monthStart, $today)
+            ),
+            'purchases' => DashboardCalculationService::dailyNet(
+                $monthStart, $today,
+                $this->dailyTotals(Purchase::class, 'purchase_date', $monthStart, $today),
+                $this->dailyTotals(PurchaseReturn::class, 'return_date', $monthStart, $today)
+            ),
         ];
 
         $topProducts = DB::table('sale_items')
@@ -135,13 +127,13 @@ class DashboardController extends Controller
             ->where('sales.status', 'posted')
             ->whereBetween('sales.sale_date', [$monthStart, $today])
             ->groupBy('products.id', 'products.name')
-            ->orderByDesc(DB::raw('SUM(sale_items.line_total)'))
+            ->orderByDesc(DB::raw('SUM(ROUND(sale_items.line_total * (CASE WHEN sales.exchange_rate > 0 THEN sales.exchange_rate ELSE 1 END), 2))'))
             ->limit(5)
             ->get([
                 'products.id',
                 'products.name',
                 DB::raw('SUM(sale_items.quantity) AS quantity'),
-                DB::raw('SUM(sale_items.line_total) AS total'),
+                DB::raw('SUM(ROUND(sale_items.line_total * (CASE WHEN sales.exchange_rate > 0 THEN sales.exchange_rate ELSE 1 END), 2)) AS total'),
             ]);
 
         $topProductsTotal = max(1, (float) $topProducts->sum('total'));
@@ -152,47 +144,24 @@ class DashboardController extends Controller
 
         $recentTransactions = $this->recentTransactions();
 
-        $customerInflow = CustomerPayment::query()
-            ->whereBetween('payment_date', [$monthStart, $today])
-            ->selectRaw('payment_date AS day, SUM(amount) AS total')
-            ->groupBy('payment_date')
-            ->pluck('total', 'day');
-
-        $supplierOutflow = SupplierPayment::query()
-            ->whereBetween('payment_date', [$monthStart, $today])
-            ->selectRaw('payment_date AS day, SUM(amount) AS total')
-            ->groupBy('payment_date')
-            ->pluck('total', 'day');
-
-        $expenseOutflow = Expense::query()
-            ->where('status', 'posted')
-            ->whereBetween('expense_date', [$monthStart, $today])
-            ->selectRaw('expense_date AS day, SUM(amount) AS total')
-            ->groupBy('expense_date')
-            ->pluck('total', 'day');
-
-        $payrollOutflow = PayrollPayment::query()
-            ->whereBetween('payment_date', [$monthStart, $today])
-            ->selectRaw('payment_date AS day, SUM(amount) AS total')
-            ->groupBy('payment_date')
-            ->pluck('total', 'day');
-
-        $cashDates = collect($customerInflow->keys())
-            ->merge($supplierOutflow->keys())
-            ->merge($expenseOutflow->keys())
-            ->merge($payrollOutflow->keys())
-            ->unique()
-            ->sort()
-            ->values();
+        // Match Reports > Cash Flow: posted GL cash/bank journal debits and credits.
+        // This measures account movements (including internal transfers), NOT sales.
+        $cashMovements = DB::table('journal_lines')
+            ->join('journal_entries', 'journal_entries.id', '=', 'journal_lines.journal_entry_id')
+            ->join('accounts', 'accounts.id', '=', 'journal_lines.account_id')
+            ->where('journal_entries.status', 'posted')
+            ->whereBetween('journal_entries.journal_date', [$monthStart, $today])
+            ->where('accounts.type', 'asset')
+            ->whereIn('accounts.subtype', ['cash', 'bank'])
+            ->groupBy('journal_entries.journal_date')
+            ->selectRaw('journal_entries.journal_date AS day, SUM(journal_lines.debit) AS inflow, SUM(journal_lines.credit) AS outflow')
+            ->get()
+            ->keyBy('day');
 
         $cashFlowChart = [
-            'labels' => $cashDates->map(fn ($date) => date('d M', strtotime($date)))->all(),
-            'inflow' => $cashDates->map(fn ($date) => (float) ($customerInflow[$date] ?? 0))->all(),
-            'outflow' => $cashDates->map(fn ($date) =>
-                (float) ($supplierOutflow[$date] ?? 0)
-                + (float) ($expenseOutflow[$date] ?? 0)
-                + (float) ($payrollOutflow[$date] ?? 0)
-            )->all(),
+            'labels' => DashboardCalculationService::dateLabels($monthStart, $today),
+            'inflow' => DashboardCalculationService::dailyValues($monthStart, $today, $cashMovements, 'inflow'),
+            'outflow' => DashboardCalculationService::dailyValues($monthStart, $today, $cashMovements, 'outflow'),
         ];
 
         $expenseBreakdown = Expense::query()
@@ -209,16 +178,42 @@ class DashboardController extends Controller
 
         $lowStockItems = WarehouseStock::query()
             ->join('products', 'products.id', '=', 'warehouse_stocks.product_id')
+            ->whereNull('products.deleted_at')
             ->join('warehouses', 'warehouses.id', '=', 'warehouse_stocks.warehouse_id')
-            ->whereColumn('warehouse_stocks.quantity', '<=', 'products.reorder_level')
-            ->orderBy('warehouse_stocks.quantity')
+            ->where('products.is_active', true)
+            ->where('products.track_stock', true)
+            ->where('products.reorder_level', '>', 0)
+            ->whereRaw('(warehouse_stocks.quantity - COALESCE(warehouse_stocks.reserved_quantity, 0)) <= products.reorder_level')
+            ->orderByRaw('(warehouse_stocks.quantity - COALESCE(warehouse_stocks.reserved_quantity, 0)) ASC')
             ->limit(6)
             ->get([
                 'products.id AS product_id',
                 'products.name',
                 'products.sku',
                 'warehouse_stocks.quantity',
+                'warehouse_stocks.reserved_quantity',
                 'products.reorder_level',
+                'warehouses.name AS warehouse_name',
+            ]);
+
+        $excessStockItems = WarehouseStock::query()
+            ->join('products', 'products.id', '=', 'warehouse_stocks.product_id')
+            ->whereNull('products.deleted_at')
+            ->join('warehouses', 'warehouses.id', '=', 'warehouse_stocks.warehouse_id')
+            ->where('products.is_active', true)
+            ->where('products.track_stock', true)
+            ->whereNotNull('products.maximum_stock_level')
+            ->where('products.maximum_stock_level', '>', 0)
+            ->whereRaw('(warehouse_stocks.quantity - COALESCE(warehouse_stocks.reserved_quantity, 0)) > products.maximum_stock_level')
+            ->orderByRaw('((warehouse_stocks.quantity - COALESCE(warehouse_stocks.reserved_quantity, 0)) - products.maximum_stock_level) DESC')
+            ->limit(6)
+            ->get([
+                'products.id AS product_id',
+                'products.name',
+                'products.sku',
+                'warehouse_stocks.quantity',
+                'warehouse_stocks.reserved_quantity',
+                'products.maximum_stock_level',
                 'warehouses.name AS warehouse_name',
             ]);
 
@@ -255,21 +250,11 @@ class DashboardController extends Controller
             ->where('sales.status', 'posted')
             ->whereBetween('sales.sale_date', [$monthStart, $today])
             ->groupBy('categories.id', 'categories.name')
-            ->orderByDesc(DB::raw('SUM(sale_items.line_total)'))
+            ->orderByDesc(DB::raw('SUM(ROUND(sale_items.line_total * (CASE WHEN sales.exchange_rate > 0 THEN sales.exchange_rate ELSE 1 END), 2))'))
             ->limit(6)
             ->get([
                 DB::raw("COALESCE(categories.name, 'Uncategorized') AS name"),
-                DB::raw('SUM(sale_items.line_total) AS total'),
-            ]);
-
-        $warehouseValues = WarehouseStock::query()
-            ->join('products', 'products.id', '=', 'warehouse_stocks.product_id')
-            ->join('warehouses', 'warehouses.id', '=', 'warehouse_stocks.warehouse_id')
-            ->groupBy('warehouses.id', 'warehouses.name')
-            ->orderByDesc(DB::raw('SUM(warehouse_stocks.quantity * products.purchase_price)'))
-            ->get([
-                'warehouses.name',
-                DB::raw('SUM(warehouse_stocks.quantity * products.purchase_price) AS stock_value'),
+                DB::raw('SUM(ROUND(sale_items.line_total * (CASE WHEN sales.exchange_rate > 0 THEN sales.exchange_rate ELSE 1 END), 2)) AS total'),
             ]);
 
         $notifications = SystemNotification::query()
@@ -290,11 +275,141 @@ class DashboardController extends Controller
             'cashFlowChart',
             'expenseBreakdown',
             'lowStockItems',
+            'excessStockItems',
             'accountBalances',
             'salesByCategory',
             'warehouseValues',
             'notifications'
         ));
+    }
+
+    /** Invoices are displayed in BDT: use the same per-invoice FX conversion as GL posting. */
+    private function documentTotal(string $model, string $dateColumn, string $from, string $to): float
+    {
+        return (float) $model::query()
+            ->where('status', 'posted')
+            ->whereBetween($dateColumn, [$from, $to])
+            ->selectRaw('COALESCE(SUM(ROUND(grand_total * (CASE WHEN exchange_rate > 0 THEN exchange_rate ELSE 1 END), 2)), 0) AS total')
+            ->value('total');
+    }
+
+    /** Returns inherit the ORIGINAL document's exchange rate (as used for posting refunds). */
+    private function returnTotal(string $model, string $dateColumn, string $from, string $to): float
+    {
+        $salesReturn = $model === SaleReturn::class;
+        $table = $salesReturn ? 'sale_returns' : 'purchase_returns';
+        $parent = $salesReturn ? 'sales' : 'purchases';
+        $foreign = $salesReturn ? 'sale_id' : 'purchase_id';
+
+        return (float) DB::table($table)
+            ->leftJoin($parent, $parent.'.id', '=', $table.'.'.$foreign)
+            ->where($table.'.status', 'posted')
+            ->whereBetween($table.'.'.$dateColumn, [$from, $to])
+            ->selectRaw('COALESCE(SUM(ROUND('.$table.'.grand_total * (CASE WHEN '.$parent.'.exchange_rate > 0 THEN '.$parent.'.exchange_rate ELSE 1 END), 2)), 0) AS total')
+            ->value('total');
+    }
+
+    /** @return \Illuminate\Support\Collection<string, float> */
+    private function dailyTotals(string $model, string $dateColumn, string $from, string $to): Collection
+    {
+        if (in_array($model, [SaleReturn::class, PurchaseReturn::class], true)) {
+            $salesReturn = $model === SaleReturn::class;
+            $table = $salesReturn ? 'sale_returns' : 'purchase_returns';
+            $parent = $salesReturn ? 'sales' : 'purchases';
+            $foreign = $salesReturn ? 'sale_id' : 'purchase_id';
+            return DB::table($table)
+                ->leftJoin($parent, $parent.'.id', '=', $table.'.'.$foreign)
+                ->where($table.'.status', 'posted')
+                ->whereBetween($table.'.'.$dateColumn, [$from, $to])
+                ->selectRaw($table.'.'.$dateColumn.' AS day, SUM(ROUND('.$table.'.grand_total * (CASE WHEN '.$parent.'.exchange_rate > 0 THEN '.$parent.'.exchange_rate ELSE 1 END), 2)) AS total')
+                ->groupBy($table.'.'.$dateColumn)
+                ->pluck('total', 'day');
+        }
+
+        return $model::query()
+            ->where('status', 'posted')
+            ->whereBetween($dateColumn, [$from, $to])
+            ->selectRaw($dateColumn.' AS day, SUM(ROUND(grand_total * (CASE WHEN exchange_rate > 0 THEN exchange_rate ELSE 1 END), 2)) AS total')
+            ->groupBy($dateColumn)
+            ->pluck('total', 'day');
+    }
+
+    /** Identical posted-journal income / expense sign convention as Profit & Loss report. */
+    private function netProfit(string $from, string $to): float
+    {
+        $totals = DB::table('journal_lines')
+            ->join('journal_entries', 'journal_entries.id', '=', 'journal_lines.journal_entry_id')
+            ->join('accounts', 'accounts.id', '=', 'journal_lines.account_id')
+            ->where('journal_entries.status', 'posted')
+            ->whereBetween('journal_entries.journal_date', [$from, $to])
+            ->whereIn('accounts.type', ['income', 'expense'])
+            ->selectRaw("COALESCE(SUM(journal_lines.credit - journal_lines.debit), 0) AS profit")
+            ->value('profit');
+
+        // Income contributes (credit - debit); expenses reduce profit (credit - debit).
+        // Including inactive and soft-deleted historical accounts keeps P&L consistent.
+        return (float) $totals;
+    }
+
+    /**
+     * Current inventory valuation for the dashboard. FIFO products use their
+     * remaining cost layers; average-cost products use WarehouseStock.average_cost.
+     * This keeps the dashboard consistent with the dedicated Stock Valuation report.
+     *
+     * @return array{0: float, 1: \Illuminate\Support\Collection}
+     */
+    private function inventoryValuationSummary(): array
+    {
+        $stocks = WarehouseStock::query()
+            ->with(['warehouse:id,name', 'product:id,purchase_price,costing_method'])
+            ->where('quantity', '!=', 0)
+            ->get();
+
+        $layers = InventoryCostLayer::query()
+            ->where('quantity_remaining', '>', 0)
+            ->selectRaw('warehouse_id, product_id, SUM(quantity_remaining) AS layer_qty, SUM(quantity_remaining * unit_cost) AS layer_value')
+            ->groupBy('warehouse_id', 'product_id')
+            ->get()
+            ->keyBy(fn ($row) => $row->warehouse_id.'|'.$row->product_id);
+
+        $warehouseTotals = [];
+        $total = 0.0;
+
+        foreach ($stocks as $stock) {
+            if (! $stock->product || ! $stock->warehouse) {
+                continue;
+            }
+
+            $quantity = (float) $stock->quantity;
+            $fallbackCost = (float) $stock->average_cost > 0
+                ? (float) $stock->average_cost
+                : (float) $stock->product->purchase_price;
+
+            if ($stock->product->costing_method === 'fifo') {
+                $layer = $layers->get($stock->warehouse_id.'|'.$stock->product_id);
+                $layerQty = (float) ($layer->layer_qty ?? 0);
+                $value = (float) ($layer->layer_value ?? 0);
+                if ($quantity > $layerQty) {
+                    $value += ($quantity - $layerQty) * $fallbackCost;
+                }
+            } else {
+                $value = $quantity * $fallbackCost;
+            }
+
+            $total += $value;
+            $warehouseTotals[$stock->warehouse_id] = ($warehouseTotals[$stock->warehouse_id] ?? [
+                'name' => $stock->warehouse->name,
+                'stock_value' => 0.0,
+            ]);
+            $warehouseTotals[$stock->warehouse_id]['stock_value'] += $value;
+        }
+
+        $warehouseValues = collect($warehouseTotals)
+            ->map(fn ($row) => (object) $row)
+            ->sortByDesc('stock_value')
+            ->values();
+
+        return [$total, $warehouseValues];
     }
 
     private function recentTransactions(): Collection

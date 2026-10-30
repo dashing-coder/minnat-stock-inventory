@@ -1,0 +1,17 @@
+{
+  "base": "afrin_traders_erp_backup_restore_fixed_2026_10_27.zip",
+  "changed": {
+    "app/Services/Commercial/DocumentAmountGuard.php": "9fbc133063347f442c074c06fff6f7a13ced3f3cd57d6e81d78050a893e5f53d",
+    "app/Services/Commercial/LinkedReturnGuard.php": "1df7e6f95b6c8cae05835cea17370d77652c4aea5041be523a66a0081b682f99",
+    "app/Services/Commercial/CommercialAuditService.php": "512c5b46b09fdaa4989201f4822c9e09ee160a9deeef8cc4bcd025f294e2a19d",
+    "app/Services/Commercial/SaleService.php": "1be05c5d2778bc975de589c8dafa9a96f70ae95d47901750ca8235cbcb67fae4",
+    "app/Services/Commercial/PurchaseService.php": "586d1869f46492213c5fbe9228b54f60e07ef2a17c67b405260db3993facd723",
+    "app/Services/Commercial/SaleReturnService.php": "f148f5091ce9c027874072af851379b87b822d9b7fc5abfb6dcbee99ca7ed2e4",
+    "app/Services/Commercial/PurchaseReturnService.php": "f6cff9d1c9b4791423c1cd3dda3db635bdc7a112369a5208d0308e5586115e88",
+    "config/erp_commercial.php": "a1d072e4c1c61e7b4c6769a4ca408470c038793fdd945bc5efb481c67942e762",
+    ".env.example": "9586c4402f7d4617d8522035a8aff19d9c2e122ced25750e8e27981edb828be8",
+    "routes/console.php": "70f7f1b1be99bec83e3cd3eb89f11da5adec36754b82bec91f4a0ec40644f494",
+    "tests/Feature/CommercialAccuracyRegressionTest.php": "d6b163c82bffd451b2e964ff5460af40fced353845a6629ed54ad21ea5c35ac5",
+    "SALES_PURCHASE_ACCURACY_RELEASE_NOTES.md": "00998c8c2f4a8aae441c198fafe992ed0cd2c91da275d266b7e37f29de108a2d"
+  }
+}

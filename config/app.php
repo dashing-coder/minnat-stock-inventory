@@ -3,7 +3,8 @@
 return [
     'name' => env('APP_NAME', 'M/S Afrin Traders'),
     'env' => env('APP_ENV', 'production'),
-    'debug' => (bool) env('APP_DEBUG', false),
+    // Never expose exception details when APP_ENV=production, even if .env was misconfigured.
+    'debug' => strtolower((string) env('APP_ENV', 'production')) !== 'production' && (bool) env('APP_DEBUG', false),
     'url' => env('APP_URL', 'http://localhost'),
     'timezone' => env('APP_TIMEZONE', 'UTC'),
     'locale' => env('APP_LOCALE', 'en'),

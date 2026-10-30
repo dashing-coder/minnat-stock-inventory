@@ -1,4 +1,0 @@
-@extends('layouts.app')
-@section('title','Reports') @section('heading','Reports')
-@section('content')<div class="row g-3">@foreach([
-'reports.profit-loss'=>'Profit & Loss','reports.balance-sheet'=>'Balance Sheet','reports.trial-balance'=>'Trial Balance','reports.cash-flow'=>'Cash Flow','reports.sales'=>'Sales Report','reports.purchases'=>'Purchase Report','reports.customers'=>'Customer Report','reports.suppliers'=>'Supplier Report','reports.products'=>'Product / Stock Report','reports.payments'=>'Payment Report','reports.expenses'=>'Expense Report','reports.income-expense'=>'Income / Expense','reports.registers'=>'Register Report'] as $route=>$name)<div class="col-md-4"><a href="{{ route($route) }}" class="card card-body text-decoration-none"><strong>{{ $name }}</strong><small class="text-muted">Open report with date/filter parameters</small></a></div>@endforeach</div>@endsection

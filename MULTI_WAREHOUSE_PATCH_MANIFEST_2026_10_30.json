@@ -1,0 +1,20 @@
+{
+  "release": "2026-10-30",
+  "base": "afrin_traders_erp_customer_supplier_fixed_2026_10_30.zip",
+  "database_migrations": [],
+  "live_database_modified": false,
+  "source_files": {
+    "app/Http/Controllers/WarehouseController.php": "70afd1720c19a9be3fb4ce54451ecb39a0c0dda019e08dda31efa3e4b42534e9",
+    "app/Http/Controllers/StockTransferController.php": "7d3efd9a1ccd16ba3099f2a6d9c831f7f6d1f786bb266b56747499a535ac8a81",
+    "app/Services/Inventory/StockTransferService.php": "703a31d18ba9a8d7408e73df55a61bc21957d772c1eca5e33ee5e9ce482cb67a",
+    "app/Services/Inventory/InventoryCostingService.php": "aaef9f3c3ce4344089676229db91ed21f1d3073c5e5517cd380ab1145f0d6cd3",
+    "app/Services/Inventory/InventoryAuditService.php": "4977d16981ef95ec8fd2744ff340517acf5c331745e1cc24e4ccca75fbe3cd89",
+    "routes/console.php": "890a78ad3dd30edb5fbfb4c9986bc2bd9ee2100dad0853a70314336a55adca3a",
+    "resources/views/warehouses/index.blade.php": "1182c7a3898249b99ed131a669e73436a96e60b2a4e7575292aed707e44a419f",
+    "resources/views/warehouses/form.blade.php": "8864e4f4fdff2283b29e2458ecd3ba806514397f7f0879e91f598306065740d1",
+    "resources/views/stock_transfers/form.blade.php": "a0fa4eb9568bf6cd9a39655ce98ed1a2949437b5ace2112e3fe92a05a5475bb5",
+    "tests/Feature/MultiWarehouseManagementRegressionTest.php": "6ca18339c34916f2efc9f219f4d7bc28181d66a25701db53546af289f700fc3e",
+    "scripts/verify_multi_warehouse_patch.php": "3a3e73f097ac0392dd71e68f14ecfddad05c45b23a26edf9fb0c9ad50cbc2ccc",
+    "MULTI_WAREHOUSE_MANAGEMENT_QA_RELEASE_2026_10_30.md": "c5c106f00e4e6d6b01806fdc8410f52c88768b64bb5f9976b71a132941c17dd5"
+  }
+}

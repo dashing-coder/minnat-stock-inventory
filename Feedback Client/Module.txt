@@ -1,0 +1,208 @@
+Main Module
+- Bills
+- Products
+- Reports
+- Settings
+
+
+Accounting and Stock Management Software Overview
+This software is specially designed to make every step of your trading business easier, faster, and more accurate. It helps you manage inventory, sales, purchases, accounting, and daily business operations from a single platform.
+
+Core Features
+✔ Real-Time Stock Updates – Instantly monitor product availability, identify low-stock items, and track excess inventory.
+✔ Fast Sales and Purchase Entry – Streamline the entire process with automated support for discounts, bonuses, damaged goods, and returns.
+✔ Invoice and Challan Generation – Generate and print professionally designed invoices and delivery challans with just one click.
+✔ Dynamic Ledger and Cashbook – Track daily, weekly, and monthly financial transactions in an organized and efficient way.
+✔ Profit and Loss Reports – Get a clear and accurate picture of your business performance and profitability.
+✔ Supplier and Customer Management – Manage customer outstanding balances, supplier advances, payment histories, and transaction records from a single screen.
+✔ Multi-Warehouse Support – Manage stock separately across multiple warehouses with automated inventory tracking and individual reports.
+✔ Due, Collection, and Loan Management – Keep track of outstanding payments, collections, loans, and payment histories with up-to-date records.
+✔ Purchase and Sales Returns – Process purchase and sales returns efficiently while maintaining accurate inventory and accounting records.
+
+Advanced Features
+✔ Barcode Support – Speed up sales entry and product identification through barcode scanning.
+✔ Product Variant and Batch Management – Manage different brands, sizes, batches, and expiry dates in one place.
+✔ Automatic Stock Valuation – Automatically calculate inventory value using FIFO (First In, First Out) or Average Cost methods.
+✔ Expense Management – Record expenses by category and analyze them through detailed reports.
+✔ User Permission Control – Allow administrators to define what each user can view, access, edit, or manage.
+✔ Quick Search and Smart Filters – Find the products and information you need quickly, even when managing thousands of products.
+✔ Low-Stock Alerts and Auto-Reorder Suggestions – Receive alerts when inventory levels fall below the required threshold and get suggestions for replenishment.
+✔ Business Summary Dashboard – Monitor your business performance through a centralized dashboard with up-to-date information.
+✔ POS Mode (Fast Billing) – Enjoy a fast and efficient billing process designed for busy retail and wholesale businesses.
+✔ Internal Warehouse Transfers – Transfer stock between warehouses while maintaining accurate inventory records.
+✔ Multiple Pricing Systems – Set separate wholesale, retail, and special prices for different customers or sales conditions.
+✔ Data Backup System – Protect your business information with a reliable data backup system.
+
+Manage Your Entire Business in One Place
+From inventory control and sales management to accounting, reporting, and customer relationships, this software provides an integrated solution for managing your trading business more efficiently.
+
+Simplify your operations, improve accuracy, reduce manual work, and make smarter business decisions with a complete Accounting and Stock Management System.
+
+স্বাগতম আমাদের অ্যাকাউন্টিং ও স্টক ম্যানেজমেন্ট সফটওয়্যারের ওভারভিউ ভিডিওতে।
+
+এই সফটওয়্যারটি বিশেষভাবে তৈরি করা হয়েছে ট্রেড ব্যবসার প্রতিটি ধাপকে আরও সহজ, দ্রুত এবং নিখুঁতভাবে পরিচালনা করার জন্য।
+
+এখানে আপনি পাবেন—
+✔ রিয়েল-টাইম স্টক আপডেট – কোন প্রোডাক্ট কমে যাচ্ছে, কোনটা বেশি রয়েছে, সব একদম মুহূর্তেই দেখতে পারবেন।
+✔ দ্রুত সেলস ও পারচেজ এন্ট্রি – ডিসকাউন্ট, বোনাস, ড্যামেজ, রিটার্নসহ পুরো প্রক্রিয়া অটোমেটেড।
+✔ ইনভয়েস ও চ্যালান জেনারেশন – প্রফেশনাল ডিজাইনের ইনভয়েস এক ক্লিকে প্রিন্ট।
+✔ ডাইনামিক লেজার ও ক্যাশবুক – দৈনিক, সাপ্তাহিক ও মাসিক হিসাব পুরোপুরি গোছানোভাবে ট্র্যাক করুন।
+✔ প্রোফিট & লস রিপোর্ট – আপনার ব্যবসার আসল অবস্থার সঠিক চিত্র।
+✔ সাপ্লায়ার ও কাস্টোমার ম্যানেজমেন্ট – কাস্টমারের বকেয়া, সাপ্লায়ারের অ্যাডভান্স, পেমেন্ট হিস্ট্রি সবকিছু এক স্ক্রিনে।
+✔ মাল্টি-গোদাম / মাল্টি-উইয়ারহাউস সাপোর্ট – আলাদা আলাদা স্টক, আলাদা রিপোর্ট—সবই অটোমেটেড।
+✔ ডিউ, কালেকশন ও লোন ম্যানেজমেন্ট – কে কত বাকি রেখেছে বা কত দিয়েছে তা সবসময় আপডেটেড।
+✔ পারচেজ রিটার্ন ও সেলস রিটার্ন – ভুল কমায়, স্টক ঠিক রাখে।
+
+এছাড়াও আরও সুবিধা পাবেন—
+✔ Barcode Support – স্ক্যান করে সেলস এন্ট্রি আরও দ্রুত।
+✔ Product Variant & Batch Management – বিভিন্ন ব্র্যান্ড, সাইজ, ব্যাচ, এক্সপায়ারি সব একসাথে ম্যানেজ।
+✔ Auto Stock Valuation – FIFO বা Average Cost হিসাব নিজে নিজে আপডেট।
+✔ Expense Management – প্রতিটি খরচ আলাদা ক্যাটাগরিতে রেকর্ড, রিপোর্টে স্পষ্টভাবে দেখা যায়। 
+✔ User Permission Control – কোন ইউজার কী দেখতে বা পরিবর্তন করতে পারবে তা অ্যাডমিন নির্ধারণ করতে পারবেন।
+✔ Quick Search & Smart Filter System – হাজার প্রোডাক্টের মধ্যেও দ্রুত যেটা দরকার সেটাই খুঁজে পাওয়া যায়। 
+✔ Low Stock Alert & Auto Reorder Suggestion – স্টক কমলে সিস্টেম নিজেই জানিয়ে দেয়।
+✔ Business Summary Dashboard – ব্যবসার অবস্থার লাইভ আপডেট।
+✔ POS Mode (Fast Billing) – ব্যস্ত দোকানের জন্য দ্রুত বিলিং সিস্টেম। 
+✔ Internal Transfer Between Warehouses – এক গুদাম থেকে অন্য গুদামে স্টক স্থানান্তর।
+✔ Multiple Pricing System – Wholesale, Retail, Special Price—সব আলাদা সেট করুন।
+✔ Backup System – আপনার ডাটা সবসময় নিরাপদ।
+
+চলুন তাহলে দেখে নিই, কীভাবে এই সফটওয়্যার আপনার ট্রেড ব্যবসাকে আরও স্মার্ট, কার্যকর এবং সময়সাশ্রয়ী করে তুলতে পারে।
+
+========================================================================================================================
+
+
+# Accounting and Stock Management Software
+## প্রফেশনাল ওভারভিউ ভিডিও স্ক্রিপ্ট
+
+স্বাগতম আমাদের **Accounting and Stock Management Software-এর ওভারভিউ ভিডিওতে।**
+
+আপনার ব্যবসার হিসাব-নিকাশ, স্টক ব্যবস্থাপনা এবং দৈনন্দিন কার্যক্রমকে আরও সহজ, দ্রুত, নির্ভুল ও কার্যকর করে তুলতে আমাদের এই সফটওয়্যারটি তৈরি করা হয়েছে বিশেষভাবে ট্রেডিং ব্যবসার কথা মাথায় রেখে।
+
+একটি সমন্বিত প্ল্যাটফর্ম থেকেই এখন পরিচালনা করুন আপনার সেলস, পারচেজ, ইনভেন্টরি, অ্যাকাউন্টিং, কাস্টমার, সাপ্লায়ার এবং আর্থিক কার্যক্রম।
+
+চলুন, দেখে নেওয়া যাক আমাদের সফটওয়্যারের গুরুত্বপূর্ণ ফিচারগুলো।
+
+### ১. স্মার্ট স্টক ও ইনভেন্টরি ম্যানেজমেন্ট
+
+**রিয়েল-টাইম স্টক আপডেটের** মাধ্যমে মুহূর্তেই জানতে পারবেন কোন প্রোডাক্টের স্টক কতটুকু রয়েছে, কোন পণ্যের চাহিদা বেশি এবং কোন পণ্যের স্টক কমে যাচ্ছে।
+
+সেলস, পারচেজ, রিটার্ন এবং স্টক ট্রান্সফারের সঙ্গে সামঞ্জস্য রেখে ইনভেন্টরি আপডেট রাখুন আরও সহজে।
+
+### ২. দ্রুত সেলস ও পারচেজ ম্যানেজমেন্ট
+
+সহজ ও দ্রুত এন্ট্রি সিস্টেমের মাধ্যমে পরিচালনা করুন আপনার প্রতিদিনের সেলস ও পারচেজ কার্যক্রম।
+
+ডিসকাউন্ট, বোনাস, ড্যামেজ, সেলস রিটার্ন এবং পারচেজ রিটার্নসহ প্রয়োজনীয় লেনদেনগুলো পরিচালনা করুন একটি সমন্বিত সিস্টেমে।
+
+### ৩. প্রফেশনাল ইনভয়েস ও চালান জেনারেশন
+
+মাত্র কয়েকটি ধাপেই তৈরি করুন প্রফেশনাল ইনভয়েস ও ডেলিভারি চালান।
+
+সহজেই ইনভয়েস প্রিন্ট করুন এবং আপনার ব্যবসার লেনদেনের রেকর্ড রাখুন আরও সুসংগঠিতভাবে।
+
+### ৪. ডাইনামিক লেজার ও ক্যাশবুক
+
+আপনার ব্যবসার আর্থিক লেনদেনের পূর্ণাঙ্গ হিসাব রাখুন ডাইনামিক লেজার ও ক্যাশবুকের মাধ্যমে।
+
+দৈনিক, সাপ্তাহিক ও মাসিক লেনদেন পর্যবেক্ষণ করুন এবং সহজেই বুঝে নিন আপনার ব্যবসার অর্থপ্রবাহের অবস্থা।
+
+### ৫. প্রফিট অ্যান্ড লস রিপোর্ট
+
+আপনার ব্যবসার লাভ-ক্ষতির প্রকৃত চিত্র বুঝতে ব্যবহার করুন প্রফিট অ্যান্ড লস রিপোর্ট।
+
+আয়, ব্যয় এবং ব্যবসায়িক লেনদেনের তথ্য বিশ্লেষণ করে সিদ্ধান্ত নিন আরও আত্মবিশ্বাসের সঙ্গে।
+
+### ৬. কাস্টমার ও সাপ্লায়ার ম্যানেজমেন্ট
+
+একটি প্ল্যাটফর্ম থেকেই পরিচালনা করুন আপনার সব কাস্টমার ও সাপ্লায়ারের তথ্য।
+
+কাস্টমারের বকেয়া, সাপ্লায়ারের অগ্রিম, পেমেন্ট হিস্ট্রি এবং লেনদেনের রেকর্ড রাখুন সহজে ও সুসংগঠিতভাবে।
+
+### ৭. মাল্টি-ওয়্যারহাউস ম্যানেজমেন্ট
+
+আপনার একাধিক গুদামের স্টক আলাদাভাবে পরিচালনা করুন।
+
+প্রতিটি ওয়্যারহাউসের ইনভেন্টরি ও সংশ্লিষ্ট রিপোর্ট পর্যবেক্ষণ করুন এবং এক গুদাম থেকে অন্য গুদামে স্টক ট্রান্সফার করুন সহজেই।
+
+### ৮. ডিউ, কালেকশন ও লোন ম্যানেজমেন্ট
+
+কাস্টমারের বকেয়া, পেমেন্ট কালেকশন এবং লোন-সংক্রান্ত তথ্য রাখুন সুসংগঠিতভাবে।
+
+কে কত টাকা বাকি রেখেছেন, কে কত পরিশোধ করেছেন এবং কোন লেনদেনের কী অবস্থা—সবকিছু পর্যবেক্ষণ করুন সহজেই।
+
+### ৯. বারকোড সাপোর্ট
+
+বারকোড স্ক্যান করে দ্রুত প্রোডাক্ট শনাক্ত করুন এবং সেলস এন্ট্রি ও বিলিং প্রক্রিয়াকে আরও গতিশীল করুন।
+
+### ১০. প্রোডাক্ট ভ্যারিয়েন্ট, ব্যাচ ও এক্সপায়ারি ম্যানেজমেন্ট
+
+বিভিন্ন ব্র্যান্ড, সাইজ, ভ্যারিয়েন্ট এবং ব্যাচ অনুযায়ী প্রোডাক্ট পরিচালনা করুন একই সিস্টেমে।
+
+প্রয়োজন অনুযায়ী ব্যাচ নম্বর ও এক্সপায়ারি ডেট ট্র্যাক করে পণ্যের তথ্য রাখুন আরও নির্ভুলভাবে।
+
+### ১১. অটোমেটেড স্টক ভ্যালুয়েশন
+
+FIFO অথবা Average Cost পদ্ধতির মাধ্যমে স্টকের মূল্যায়ন পরিচালনা করুন।
+
+আপনার নির্বাচিত কস্টিং পদ্ধতি অনুযায়ী স্টকের মূল্য ও সংশ্লিষ্ট হিসাব আরও সুসংগঠিতভাবে নির্ণয় করুন।
+
+### ১২. এক্সপেন্স ম্যানেজমেন্ট
+
+ব্যবসার প্রতিটি খরচ আলাদা ক্যাটাগরিতে রেকর্ড করুন।
+
+অফিস খরচ থেকে শুরু করে দৈনন্দিন পরিচালন ব্যয়—সবকিছুর হিসাব রাখুন এবং রিপোর্টের মাধ্যমে খরচের চিত্র বিশ্লেষণ করুন।
+
+### ১৩. ইউজার পারমিশন ও অ্যাক্সেস কন্ট্রোল
+
+আপনার ব্যবসার তথ্যের নিরাপত্তা ও নিয়ন্ত্রণ নিশ্চিত করতে নির্ধারণ করুন কোন ইউজার কোন তথ্য দেখতে পারবেন এবং কোন কার্যক্রম সম্পাদন করতে পারবেন।
+
+অ্যাডমিনের নিয়ন্ত্রণে পরিচালনা করুন ইউজার অ্যাক্সেস ও অনুমতি।
+
+### ১৪. কুইক সার্চ ও স্মার্ট ফিল্টার
+
+হাজার হাজার প্রোডাক্ট, কাস্টমার বা লেনদেনের মধ্য থেকেও প্রয়োজনীয় তথ্য খুঁজে বের করুন দ্রুত।
+
+স্মার্ট সার্চ ও ফিল্টার সুবিধা আপনার দৈনন্দিন কাজকে করবে আরও সহজ ও সময়সাশ্রয়ী।
+
+### ১৫. লো-স্টক অ্যালার্ট ও রি-অর্ডার সাজেশন
+
+স্টক নির্ধারিত সীমার নিচে নেমে গেলে পান লো-স্টক অ্যালার্ট।
+
+প্রয়োজন অনুযায়ী রি-অর্ডার সাজেশনের সাহায্যে পরিকল্পনা করুন পরবর্তী পারচেজ এবং কমিয়ে আনুন স্টক শেষ হয়ে যাওয়ার ঝুঁকি।
+
+### ১৬. বিজনেস সামারি ড্যাশবোর্ড
+
+এক নজরেই দেখুন আপনার ব্যবসার গুরুত্বপূর্ণ সারসংক্ষেপ।
+
+সেলস, পারচেজ, স্টক, বকেয়া এবং আর্থিক কার্যক্রমের তথ্য পর্যবেক্ষণ করে ব্যবসার বর্তমান অবস্থা সম্পর্কে ধারণা নিন দ্রুত।
+
+### ১৭. POS মোড — ফাস্ট বিলিং
+
+ব্যস্ত দোকান ও দ্রুত বিক্রয় কার্যক্রমের জন্য রয়েছে POS মোড।
+
+সহজ প্রোডাক্ট সিলেকশন, দ্রুত বিলিং এবং কার্যকর সেলস প্রসেসের মাধ্যমে কাস্টমার সার্ভিসকে করুন আরও গতিশীল।
+
+### ১৮. মাল্টিপল প্রাইসিং সিস্টেম
+
+একই প্রোডাক্টের জন্য নির্ধারণ করুন Wholesale Price, Retail Price এবং Special Price।
+
+ব্যবসার প্রয়োজন অনুযায়ী বিভিন্ন মূল্য ব্যবস্থাপনা করুন আরও সহজে।
+
+### ১৯. ডেটা ব্যাকআপ সিস্টেম
+
+আপনার ব্যবসার গুরুত্বপূর্ণ ডেটা সুরক্ষিত রাখতে ব্যবহার করুন ব্যাকআপ সুবিধা।
+
+নিয়মিত ব্যাকআপের মাধ্যমে ডেটা হারানোর ঝুঁকি কমাতে সহায়তা নিন এবং আপনার ব্যবসার তথ্য ব্যবস্থাপনাকে আরও নির্ভরযোগ্য করে তুলুন।
+
+### কেন ব্যবহার করবেন আমাদের সফটওয়্যার?
+
+কারণ, একটি ব্যবসা পরিচালনার জন্য শুধু বিক্রয় বা স্টকের হিসাব রাখাই যথেষ্ট নয়। প্রয়োজন সঠিক তথ্য, সুসংগঠিত হিসাব এবং সময়োপযোগী সিদ্ধান্ত নেওয়ার সক্ষমতা।
+
+আমাদের Accounting and Stock Management Software আপনার ব্যবসার বিভিন্ন কার্যক্রমকে একটি সমন্বিত প্ল্যাটফর্মে নিয়ে আসে, যাতে আপনি সময় বাঁচাতে পারেন, ম্যানুয়াল কাজের জটিলতা কমাতে পারেন এবং ব্যবসার ওপর আরও কার্যকর নিয়ন্ত্রণ প্রতিষ্ঠা করতে পারেন।
+
+**আপনার ব্যবসা পরিচালনা হোক আরও স্মার্ট, হিসাব হোক আরও সুসংগঠিত, আর সিদ্ধান্ত হোক আরও তথ্যভিত্তিক।**
+
+চলুন, এবার সরাসরি সফটওয়্যারটি ব্যবহার করে দেখে নেওয়া যাক—কীভাবে এর প্রতিটি ফিচার আপনার দৈনন্দিন ব্যবসায়িক কার্যক্রমকে আরও সহজ, কার্যকর ও সময়সাশ্রয়ী করে তুলতে পারে।
+
+ধন্যবাদ আমাদের সঙ্গে থাকার জন্য।

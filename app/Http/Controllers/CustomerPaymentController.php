@@ -8,16 +8,11 @@ use App\Models\CustomerPayment;
 use App\Models\Sale;
 use App\Services\Payments\CustomerPaymentService;
 use Illuminate\Http\Request;
-<<<<<<< HEAD
-=======
-use Illuminate\Validation\Rule;
->>>>>>> a903df116cf65a53178fd1bbf9f2abb17c72c5a5
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 class CustomerPaymentController extends Controller
 {
-<<<<<<< HEAD
     public function __construct(private CustomerPaymentService $service)
     {
     }
@@ -37,24 +32,12 @@ class CustomerPaymentController extends Controller
         }
 
         $rows = $query->latest('id')->paginate(20)->withQueryString();
-=======
-    public function __construct(private CustomerPaymentService $service) {}
-
-    public function index(Request $request)
-    {
-        $rows = CustomerPayment::with('customer', 'sale', 'account')
-            ->when($request->filled('from'), fn ($q) => $q->whereDate('payment_date', '>=', $request->from))
-            ->when($request->filled('to'), fn ($q) => $q->whereDate('payment_date', '<=', $request->to))
-            ->when($request->filled('customer_id'), fn ($q) => $q->where('customer_id', $request->customer_id))
-            ->latest('id')->paginate(20)->withQueryString();
->>>>>>> a903df116cf65a53178fd1bbf9f2abb17c72c5a5
 
         return view('customer_payments.index', compact('rows'));
     }
 
     public function create()
     {
-<<<<<<< HEAD
         $salesQuery = Sale::query()
             ->where('status', 'posted')
             ->where('due_amount', '>', 0);
@@ -73,18 +56,11 @@ class CustomerPaymentController extends Controller
         return view('customer_payments.form', [
             'customers' => $customers,
             'sales' => $sales,
-=======
-        return view('customer_payments.form', [
-            'customers' => Customer::where('is_active', true)->orderBy('name')->get(),
-            'sales' => Sale::where('status', 'posted')->where('due_amount', '>', 0)->latest()->get(),
-            'accounts' => Account::where('type', 'asset')->whereIn('subtype', ['cash', 'bank'])->where('is_active', true)->get(),
->>>>>>> a903df116cf65a53178fd1bbf9f2abb17c72c5a5
         ]);
     }
 
     public function store(Request $request)
     {
-<<<<<<< HEAD
         if ($this->isSeller()) {
             if ($request->input('payment_date') !== now()->toDateString()) {
                 throw ValidationException::withMessages([
@@ -102,23 +78,13 @@ class CustomerPaymentController extends Controller
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'sale_id' => 'nullable|exists:sales,id',
-            'payment_date' => 'required|date',
-            'amount' => 'required|numeric|gt:0',
+            'payment_date' => 'required|date_format:Y-m-d',
+            'amount' => 'required|numeric|decimal:0,2|gt:0|max:9999999999999999.99',
             'method' => 'required|in:cash,bank,cheque,card,mobile_banking',
-=======
-        $data = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'sale_id' => ['nullable', Rule::exists('sales', 'id')->where(fn ($q) => $q->where('status', 'posted'))],
-            'account_id' => ['required', Rule::exists('accounts', 'id')->where(fn ($q) => $q->where('is_active', 1)->where('type', 'asset')->whereIn('subtype', ['cash', 'bank']))],
-            'payment_date' => 'required|date',
-            'amount' => 'required|numeric|gt:0',
-            'method' => 'required|string|max:30',
->>>>>>> a903df116cf65a53178fd1bbf9f2abb17c72c5a5
             'reference' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
         ]);
 
-<<<<<<< HEAD
         // The payment account is intentionally not exposed on the receipt form.
         // Cash receipts post to the active cash account; all non-cash methods
         // post to the active bank account. This keeps ledger selection controlled
@@ -139,6 +105,10 @@ class CustomerPaymentController extends Controller
                 throw ValidationException::withMessages([
                     'sale_id' => __('Invoice does not belong to selected customer.'),
                 ]);
+            }
+
+            if ($validated['payment_date'] < $sale->sale_date->toDateString()) {
+                throw ValidationException::withMessages(['payment_date' => __('Linked payment date cannot precede invoice date.')]);
             }
 
             if ((float) $validated['amount'] > (float) $sale->due_amount) {
@@ -174,6 +144,17 @@ class CustomerPaymentController extends Controller
                 ]);
             }
 
+            $errors = [
+                'Linked payment date cannot precede invoice date.' => 'payment_date',
+                'Payments may only be applied to posted sales.' => 'sale_id',
+                'Invoice does not belong to selected customer.' => 'sale_id',
+                'Seller receipts may only be applied to your own sales.' => 'sale_id',
+                'Seller receipts must reference one of your posted sales.' => 'sale_id',
+                'Payment account must be an active Cash/Bank asset account.' => 'method',
+            ];
+            if (isset($errors[$exception->getMessage()])) {
+                throw ValidationException::withMessages([$errors[$exception->getMessage()] => __($exception->getMessage())]);
+            }
             throw $exception;
         }
 
@@ -208,14 +189,5 @@ class CustomerPaymentController extends Controller
     private function isSeller(): bool
     {
         return auth()->user()?->hasRole('Seller') ?? false;
-=======
-        try {
-            $payment = $this->service->create($data);
-        } catch (RuntimeException $e) {
-            throw ValidationException::withMessages(['payment' => $e->getMessage()]);
-        }
-
-        return redirect()->route('customer-payments.index')->with('success', 'Customer payment posted: '.$payment->payment_no);
->>>>>>> a903df116cf65a53178fd1bbf9f2abb17c72c5a5
     }
 }

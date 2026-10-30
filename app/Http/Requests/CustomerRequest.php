@@ -17,6 +17,7 @@ class CustomerRequest extends FormRequest
         $creating = $this->isMethod('post');
         return [
             'customer_group_id'=>['nullable','exists:customer_groups,id'],
+            'market_hierarchy_id'=>['nullable','exists:market_hierarchies,id'],
             'name'=>['required','string','max:200'],
             'company_name'=>['nullable','string','max:200'],
             'contact_person'=>['nullable','string','max:150'],
@@ -27,10 +28,10 @@ class CustomerRequest extends FormRequest
             'city'=>['nullable','string','max:100'],
             'district'=>['nullable','string','max:100'],
             'country'=>['nullable','string','max:100'],
-            'opening_balance'=>$creating ? ['nullable','numeric','min:0'] : ['prohibited'],
+            'opening_balance'=>$creating ? ['nullable','numeric','decimal:0,2','min:0','max:9999999999999999.99'] : ['prohibited'],
             'opening_balance_type'=>$creating ? ['required',Rule::in(['receivable','advance'])] : ['prohibited'],
-            'credit_limit'=>['nullable','numeric','min:0'],
-            'payment_terms_days'=>['nullable','integer','min:0'],
+            'credit_limit'=>['nullable','numeric','decimal:0,2','min:0','max:9999999999999999.99'],
+            'payment_terms_days'=>['nullable','integer','min:0','max:4294967295'],
             'tax_number'=>['nullable','string','max:100'],
             'notes'=>['nullable','string'],
             'is_active'=>['required','boolean'],

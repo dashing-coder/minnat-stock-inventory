@@ -1,0 +1,51 @@
+{
+  "source": "intrigue_erp_system(1).sql provided by user (2026-10-27 review)",
+  "as_of": "2026-10-27",
+  "scope": "archived SQL data only; this is NOT a current XAMPP bank statement audit",
+  "bank_reconciliations_insert_rows": 0,
+  "bank_reconciliation_items_insert_rows": 0,
+  "accounts": [
+    {
+      "account_id": 1,
+      "code": "1000",
+      "name": "Cash on Hand",
+      "posted_line_count": 17,
+      "debit_total": "3691047.00",
+      "credit_total": "506540.00",
+      "gl_balance": "3184507.00",
+      "earliest_journal_date": "2026-03-01",
+      "latest_journal_date": "2026-09-28",
+      "posted_journal_nos": [
+        "JV-000001",
+        "JV-000003",
+        "JV-000006",
+        "JV-000008",
+        "JV-000011"
+      ]
+    },
+    {
+      "account_id": 2,
+      "code": "1010",
+      "name": "Bank Account",
+      "posted_line_count": 10,
+      "debit_total": "10300.00",
+      "credit_total": "1664235.00",
+      "gl_balance": "-1653935.00",
+      "earliest_journal_date": "2026-03-28",
+      "latest_journal_date": "2026-09-29",
+      "posted_journal_nos": [
+        "JV-000005",
+        "JV-000010",
+        "JV-000015",
+        "JV-000020",
+        "JV-000025"
+      ]
+    }
+  ],
+  "findings": [
+    "No bank reconciliation rows or cleared bank reconciliation items in supplied SQL dump; historical statements not reconciled there.",
+    "Bank GL has a debit-minus-credit balance of -1653935.00 (credit balance) in archived journal, requiring bank statement / overdraft verification; do not auto-post an adjustment.",
+    "There are summary journals in archive; summary postings cannot be reliably matched to individual bank deposits/payments without underlying detail.",
+    "Journal balances alone cannot verify bank statements, outstanding checks, bank charges or interest."
+  ]
+}

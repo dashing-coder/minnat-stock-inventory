@@ -14,6 +14,9 @@ class ProductService
         return DB::transaction(function () use ($data) {
             $image = $data['image'] ?? null;
             unset($data['image']);
+            if (!empty($data['track_expiry'])) {
+                $data['track_batch'] = true;
+            }
 
             if ($image instanceof UploadedFile) {
                 $data['image'] = $image->store('products', 'public');
@@ -29,6 +32,9 @@ class ProductService
     {
         $image = $data['image'] ?? null;
         unset($data['image']);
+        if (!empty($data['track_expiry'])) {
+            $data['track_batch'] = true;
+        }
 
         if ($image instanceof UploadedFile) {
             if ($product->image) {

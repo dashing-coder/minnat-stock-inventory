@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AuditMutations;
 use App\Http\Middleware\EnsureActiveUser;
+use App\Http\Middleware\EnsureBusinessDayOpen;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -20,8 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'active' => EnsureActiveUser::class,
             'audit' => AuditMutations::class,
+            'business_day' => EnsureBusinessDayOpen::class,
         ]);
-        $middleware->web(append: [SetLocale::class, AuditMutations::class]);
+        $middleware->web(append: [SetLocale::class, EnsureBusinessDayOpen::class, AuditMutations::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Add application-specific exception rendering here if desired.

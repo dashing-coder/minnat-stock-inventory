@@ -1,22 +1,24 @@
 <?php
-
 namespace App\Services\Commercial;
 
 use App\Models\Product;
-use App\Models\Sale;
 use App\Models\SaleReturn;
-use App\Models\SaleReturnItem;
+use App\Models\Sale;
 use App\Services\Accounting\AccountingService;
+use App\Services\PeriodLockService;
 use App\Services\CustomerLedgerService;
 use App\Services\Inventory\InventoryService;
+use App\Services\Inventory\InventoryCostingService;
 use App\Support\DocumentNumber;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 class SaleReturnService
 {
     public function __construct(
         private InventoryService $inventory,
+        private InventoryCostingService $costing,
         private CustomerLedgerService $ledger,
         private AccountingService $accounting
     ) {}
@@ -24,16 +26,8 @@ class SaleReturnService
     public function create(array $data): SaleReturn
     {
         return DB::transaction(function () use ($data) {
-            $items = $this->prepareItems($data['items']);
-            $items = $this->validateSource(
-                $data['sale_id'] ?? null,
-                $data['customer_id'] ?? null,
-                (int) $data['warehouse_id'],
-                $items
-            );
-            $subtotal = $this->subtotal($items);
-            $tax = (float) ($data['tax'] ?? 0);
-
+            [$items, $subtotal] = $this->prepareItems($data['items']);
+            $tax = DocumentAmountGuard::nonNegative($data['tax'] ?? 0, 'tax');
             $return = SaleReturn::create([
                 'return_no' => DocumentNumber::temporary('SRT'),
                 'sale_id' => $data['sale_id'] ?? null,
@@ -49,7 +43,6 @@ class SaleReturnService
             ]);
             $return->update(['return_no' => DocumentNumber::final('SRT', $return->id)]);
             $return->items()->createMany($items);
-
             return $return->load('items.product', 'customer', 'warehouse');
         });
     }
@@ -58,21 +51,9 @@ class SaleReturnService
     {
         return DB::transaction(function () use ($return, $data) {
             $return = SaleReturn::query()->lockForUpdate()->findOrFail($return->id);
-            if ($return->status !== 'draft') {
-                throw new RuntimeException('Only draft sales returns can be edited.');
-            }
-
-            $items = $this->prepareItems($data['items']);
-            $items = $this->validateSource(
-                $data['sale_id'] ?? null,
-                $data['customer_id'] ?? null,
-                (int) $data['warehouse_id'],
-                $items,
-                $return->id
-            );
-            $subtotal = $this->subtotal($items);
-            $tax = (float) ($data['tax'] ?? 0);
-
+            if ($return->status !== 'draft') throw new RuntimeException('Only draft sales returns can be edited.');
+            [$items, $subtotal] = $this->prepareItems($data['items']);
+            $tax = DocumentAmountGuard::nonNegative($data['tax'] ?? 0, 'tax');
             $return->update([
                 'sale_id' => $data['sale_id'] ?? null,
                 'customer_id' => $data['customer_id'] ?? null,
@@ -85,7 +66,6 @@ class SaleReturnService
             ]);
             $return->items()->delete();
             $return->items()->createMany($items);
-
             return $return->fresh(['items.product', 'customer', 'warehouse']);
         });
     }
@@ -94,75 +74,87 @@ class SaleReturnService
     {
         return DB::transaction(function () use ($return) {
             $return = SaleReturn::query()->lockForUpdate()->findOrFail($return->id);
-            if ($return->status === 'posted') {
-                return $return;
+            if ($return->status === 'posted') return $return;
+            if ($return->status !== 'draft') throw new RuntimeException('Only draft returns can be posted.');
+            app(PeriodLockService::class)->assertOpen($return->return_date->toDateString());
+            if (! $return->sale_id && ! config('erp_commercial.allow_unlinked_returns', false)) {
+                throw ValidationException::withMessages(['sale_id' => __('Link the original posted invoice before posting a return.')]);
             }
-            if ($return->status !== 'draft') {
-                throw new RuntimeException('Only draft returns can be posted.');
-            }
-
             $return->load('items.product', 'customer', 'warehouse');
-            if ($return->items->isEmpty()) {
-                throw new RuntimeException('Sales return has no items.');
+            $sourceLines = null;
+            $exchangeRate = 1.0;
+            if ($return->sale_id) {
+                // Lock the original invoice so concurrent returns for the same sale
+                // cannot both pass the returned-quantity limit.
+                $original = Sale::whereKey($return->sale_id)->lockForUpdate()->firstOrFail();
+                if ($original->status !== 'posted') {
+                    throw ValidationException::withMessages(['sale_id' => __('Only posted sales can be returned.')]);
+                }
+                $exchangeRate = (float) $original->exchange_rate;
+                $sourceLines = $original->items()->get()->groupBy('product_id');
+                $previous = DB::table('sale_return_items as i')
+                    ->join('sale_returns as r', 'r.id', '=', 'i.sale_return_id')
+                    ->where('r.sale_id', $return->sale_id)->where('r.status', 'posted')
+                    ->selectRaw('i.product_id, SUM(i.quantity) AS returned')
+                    ->groupBy('i.product_id')->pluck('returned', 'product_id');
+                $priorRefund = DB::table('sale_returns')
+                    ->where('sale_id', $return->sale_id)
+                    ->where('status', 'posted')->sum('grand_total');
+                LinkedReturnGuard::validate($original, $return, $previous, (float) $priorRefund, true);
+
+                $requested = $return->items->groupBy('product_id');
+                foreach ($requested as $productId => $lines) {
+                    $sold = $sourceLines->get($productId);
+                    $ordered = $sold ? $sold->sum(fn ($line) => (float) $line->quantity + (float) ($line->free_quantity ?? 0)) : 0.0;
+                    $returning = $lines->sum(fn ($line) => (float) $line->quantity);
+                    if ($returning + (float) ($previous[$productId] ?? 0) > $ordered + 0.0000001) {
+                        throw ValidationException::withMessages(['items' => __('Return quantity exceeds the remaining quantity on the original sale for product :id.', ['id' => $productId])]);
+                    }
+                }
             }
-
-            $items = $return->items->map(fn ($item) => [
-                'product_id' => (int) $item->product_id,
-                'quantity' => (float) $item->quantity,
-                'unit_price' => (float) $item->unit_price,
-                'cost_price' => (float) $item->cost_price,
-                'line_total' => (float) $item->line_total,
-            ])->all();
-
-            // Re-check with a row lock at posting time so concurrent returns cannot over-return.
-            $canonicalItems = $this->validateSource(
-                $return->sale_id,
-                $return->customer_id,
-                (int) $return->warehouse_id,
-                $items,
-                $return->id,
-                true
-            );
-            $canonicalByProduct = collect($canonicalItems)->keyBy('product_id');
-
             $cogs = 0.0;
             foreach ($return->items as $item) {
-                $canonical = $canonicalByProduct->get($item->product_id, [
-                    'cost_price' => (float) $item->cost_price,
-                ]);
-                $costPrice = (float) $canonical['cost_price'];
-                $cogs += (float) $item->quantity * $costPrice;
-                $this->inventory->stockIn(
-                    $return->warehouse,
-                    $item->product,
-                    $item->quantity,
-                    'sale_return',
-                    $return->return_no,
-                    'sale_return',
-                    $return->id,
-                    $costPrice,
-                    'Sales return',
-                    $return->return_date->toDateString()
+                if (! $item->product->track_stock) {
+                    // A non-stock sale cannot create physical inventory on return.
+                    continue;
+                }
+                $cost = (float) $item->cost_price;
+                if ($sourceLines !== null) {
+                    $sold = $sourceLines->get($item->product_id);
+                    $issuedQuantity = $sold->sum(fn ($line) => (float) $line->quantity + (float) ($line->free_quantity ?? 0));
+                    $cost = $issuedQuantity > 0
+                        ? round($sold->sum(fn ($line) => ((float) $line->quantity + (float) ($line->free_quantity ?? 0)) * (float) $line->cost_price) / $issuedQuantity, 4)
+                        : 0;
+                    $item->update(['cost_price' => $cost]);
+                }
+                $cogs += (float) $item->quantity * $cost;
+                $this->costing->receive(
+                    $return->warehouse,$item->product,(float)$item->quantity,$cost,
+                    $return->return_date->toDateString(),'sale_return',$return->id,
+                    enforceBatchRules:false
                 );
+                $this->inventory->stockIn($return->warehouse, $item->product, $item->quantity, 'sale_return', $return->return_no, 'sale_return', $return->id, $cost, 'Sales return', $return->return_date->toDateString());
             }
-
-            if ($return->customer) {
-                $this->ledger->credit($return->customer, $return->grand_total, 'sale_return', $return->return_no, 'Sales return', 'sale_return', $return->id, $return->return_date->toDateString());
+            $baseRefund = round((float) $return->grand_total * $exchangeRate, 2);
+            if ($return->customer && $baseRefund > 0) {
+                $this->ledger->credit($return->customer, $baseRefund, 'sale_return', $return->return_no, 'Sales return', 'sale_return', $return->id, $return->return_date->toDateString());
             }
-
             $settlement = $return->customer ? '1100' : '1000';
-            $lines = [
-                ['account_code' => '4010', 'debit' => $return->grand_total, 'credit' => 0],
-                ['account_code' => $settlement, 'debit' => 0, 'credit' => $return->grand_total, 'party_type' => $return->customer ? 'customer' : null, 'party_id' => $return->customer_id],
-            ];
+            $lines = [];
+            if ($baseRefund > 0) {
+                $lines[] = ['account_code' => '4010', 'debit' => $baseRefund, 'credit' => 0];
+                $lines[] = ['account_code' => $settlement, 'debit' => 0, 'credit' => $baseRefund,
+                    'party_type' => $return->customer ? 'customer' : null, 'party_id' => $return->customer_id];
+            }
             if ($cogs > 0) {
                 $lines[] = ['account_code' => '1200', 'debit' => $cogs, 'credit' => 0];
                 $lines[] = ['account_code' => '5000', 'debit' => 0, 'credit' => $cogs];
             }
-
-            $this->accounting->post('sale_return', $return->id, $return->return_no, $return->return_date->toDateString(), 'Sales return '.$return->return_no, $lines);
+            if ($lines !== []) {
+                $this->accounting->post('sale_return', $return->id, $return->return_no,
+                    $return->return_date->toDateString(), 'Sales return '.$return->return_no, $lines);
+            }
             $return->update(['status' => 'posted', 'posted_by' => auth()->id(), 'posted_at' => now()]);
-
             return $return->fresh(['items.product', 'customer', 'warehouse']);
         });
     }
@@ -170,100 +162,20 @@ class SaleReturnService
     private function prepareItems(array $rows): array
     {
         $items = [];
-        $seen = [];
-
-        foreach ($rows as $row) {
+        $subtotal = 0.0;
+        foreach ($rows as $index => $row) {
             $product = Product::findOrFail($row['product_id']);
-            if (isset($seen[$product->id])) {
-                throw new RuntimeException('Duplicate product in sales return.');
-            }
-            $seen[$product->id] = true;
-
             $quantity = (float) $row['quantity'];
             $unitPrice = (float) $row['unit_price'];
-            if ($quantity <= 0 || $unitPrice < 0) {
-                throw new RuntimeException('Invalid sales return item.');
-            }
-
-            $items[] = [
-                'product_id' => $product->id,
-                'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-                'cost_price' => (float) $product->purchase_price,
-                'line_total' => $quantity * $unitPrice,
-            ];
+            DocumentAmountGuard::quantity($quantity, "items.$index.quantity");
+            DocumentAmountGuard::nonNegative($unitPrice, "items.$index.unit_price");
+            $line = $quantity * $unitPrice;
+            $subtotal += $line;
+            $items[] = ['product_id' => $product->id, 'quantity' => $quantity, 'unit_price' => $unitPrice, 'cost_price' => $product->purchase_price, 'line_total' => $line];
         }
-
-        if (!$items) {
-            throw new RuntimeException('At least one sales return item is required.');
+        if ($items === []) {
+            throw ValidationException::withMessages(['items' => __('At least one return item is required.')]);
         }
-
-        return $items;
-    }
-
-    private function validateSource(
-        ?int $saleId,
-        ?int $customerId,
-        int $warehouseId,
-        array $items,
-        ?int $excludeReturnId = null,
-        bool $lock = false
-    ): array {
-        if (!$saleId) {
-            return $items;
-        }
-
-        $query = Sale::query()->with('items');
-        if ($lock) {
-            $query->lockForUpdate();
-        }
-        $sale = $query->findOrFail($saleId);
-
-        if ($sale->status !== 'posted') {
-            throw new RuntimeException('Sales returns can only be linked to a posted sale.');
-        }
-
-        $normalizedCustomerId = $customerId ? (int) $customerId : null;
-        if ($sale->customer_id !== $normalizedCustomerId) {
-            throw new RuntimeException('Selected customer does not match the source sale.');
-        }
-        if ((int) $sale->warehouse_id !== $warehouseId) {
-            throw new RuntimeException('Selected warehouse does not match the source sale.');
-        }
-
-        $sourceItems = $sale->items->keyBy('product_id');
-        $alreadyReturned = SaleReturnItem::query()
-            ->join('sale_returns', 'sale_returns.id', '=', 'sale_return_items.sale_return_id')
-            ->where('sale_returns.sale_id', $sale->id)
-            ->where('sale_returns.status', 'posted')
-            ->when($excludeReturnId, fn ($q) => $q->where('sale_returns.id', '<>', $excludeReturnId))
-            ->groupBy('sale_return_items.product_id')
-            ->selectRaw('sale_return_items.product_id, SUM(sale_return_items.quantity) AS returned_quantity')
-            ->pluck('returned_quantity', 'sale_return_items.product_id');
-
-        foreach ($items as &$item) {
-            $source = $sourceItems->get($item['product_id']);
-            if (!$source) {
-                throw new RuntimeException('A return item does not belong to the selected sale.');
-            }
-
-            $remaining = (float) $source->quantity - (float) ($alreadyReturned[$item['product_id']] ?? 0);
-            if ((float) $item['quantity'] > $remaining + 0.00001) {
-                throw new RuntimeException('Return quantity exceeds the remaining returnable quantity for '.$source->product?->name.'.');
-            }
-
-            // Source invoice values are authoritative for linked returns.
-            $item['unit_price'] = (float) $source->unit_price;
-            $item['cost_price'] = (float) $source->cost_price;
-            $item['line_total'] = (float) $item['quantity'] * (float) $source->unit_price;
-        }
-        unset($item);
-
-        return $items;
-    }
-
-    private function subtotal(array $items): float
-    {
-        return round(array_sum(array_map(fn ($item) => (float) $item['quantity'] * (float) $item['unit_price'], $items)), 2);
+        return [$items, round($subtotal, 2)];
     }
 }

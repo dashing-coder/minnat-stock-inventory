@@ -1,0 +1,14 @@
+{
+  "app/Http/Controllers/ReportController.php": "505167ec28ed5a1def1d8b86c7f3f0c6d8d65fe17b89775299e311678b63ba8c",
+  "app/Services/Reports/ReportMoney.php": "f6e0840cbb3c0a4744a21d71447758e5d549327c988fb8f08c98090f8048a4ce",
+  "app/Services/Reports/ReportAuditService.php": "403e956ea45771a5d2deedc4e3abfb9222694495af17c0cdcef099693c8a49c5",
+  "routes/console.php": "3270122cee1233f3567c65d12a13ae209e497c46e80857d020ac5c4e6f8ad44d",
+  "resources/views/reports/daily-performance.blade.php": "22a0d2e38aaca685295f67cc7c7d6c8b0d0de67636dbdd1d341ef3624c065885",
+  "resources/views/reports/vouchers.blade.php": "e3bac17300a86e6f9e75b59dfdede7e98dcdbd3741f8c6e69829c05977924f6c",
+  "resources/views/reports/voucher-print.blade.php": "466e0f103f1bc3a1277ab0ef12423425c5de63a56d556a144f94e337141027c2",
+  "resources/views/reports/financial.blade.php": "534af6d02616fcbfe156c9f2881570118490dbcbd30b0d6acd633ee4f61aa711",
+  "resources/views/reports/top-sheet.blade.php": "d5fb8f7089e0e0b0e741d718de724e54ef156fefd14530c13b1b7596129d8705",
+  "resources/views/reports/gap.blade.php": "67a35a6cef29874a3f0838acf340eba10e86a3e00a035c41c8a31f1814265861",
+  "tests/Unit/ReportMoneyTest.php": "cec9d04ef6430e8f0535b67a161ccbbd0424c3cc55b49d0779850dd1aeffa31b",
+  "REPORTS_ACCURACY_RELEASE_NOTES_2026_10_28.md": "32b200a7529cbaa8fb3b1d3a6ac7ed12f00f5aa7669b890bd863f98ebfe5e0e1"
+}

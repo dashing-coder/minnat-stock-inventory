@@ -1,0 +1,38 @@
+M/S Afrin Traders ERP - Financial Report Completion QA
+======================================================
+
+Completed requirements
+----------------------
+[PASS] Transactions Package
+[PASS] Cash Bank (existing Cashbook linked in Financial Report hub)
+[PASS] Expense History (existing Expense Report linked in Financial Report hub)
+[PASS] Receivable - Payable
+[PASS] Profit Loss (existing Profit & Loss linked in Financial Report hub)
+[PASS] GAP Report
+[PASS] Top Sheet
+
+New routes
+----------
+/reports/financial
+/reports/transactions-package
+/reports/receivable-payable
+/reports/gap
+/reports/top-sheet
+
+Validation
+----------
+[PASS] 146 application PHP / route / migration files passed php -l
+[PASS] 106/106 Blade templates compiled with Laravel BladeCompiler
+[PASS] 106/106 compiled Blade PHP files passed php -l
+[PASS] 0 raw Blade control directives remained after compilation
+[PASS] 0 inline @php(...) directives in resources/views
+[PASS] 23 report routes registered
+[PASS] lang/en.json valid JSON
+[PASS] lang/bn.json valid JSON
+[PASS] English + Bangla labels added for new Financial Report UI
+[PASS] No database schema change required
+
+Environment limitation
+----------------------
+A database-backed HTTP crawl was not executed in this container. Source, route,
+Blade, translation and PHP validation were completed successfully.

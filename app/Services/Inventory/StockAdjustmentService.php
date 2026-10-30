@@ -12,7 +12,7 @@ class StockAdjustmentService
     private const IN_TYPES = ['opening','increase','found'];
     private const OUT_TYPES = ['decrease','damage','expired','lost','internal_use'];
 
-    public function __construct(private InventoryService $inventory, private AccountingService $accounting) {}
+    public function __construct(private InventoryService $inventory, private InventoryCostingService $costing, private AccountingService $accounting) {}
 
     public function post(StockAdjustment $adjustment): void
     {
@@ -32,14 +32,20 @@ class StockAdjustmentService
 
             $inventoryValue = 0.0;
             foreach ($locked->items as $item) {
+                $quantity = (float) $item->quantity;
                 $unitCost = (float) ($item->unit_cost ?? $item->product->purchase_price ?? 0);
-                $inventoryValue += (float) $item->quantity * $unitCost;
 
                 if (in_array($locked->adjustment_type, self::IN_TYPES, true)) {
+                    $this->costing->receive(
+                        $locked->warehouse, $item->product, $quantity, $unitCost,
+                        $locked->adjustment_date->toDateString(), 'stock_adjustment', $locked->id,
+                        enforceBatchRules: false
+                    );
+                    $inventoryValue += $quantity * $unitCost;
                     $this->inventory->stockIn(
                         warehouse: $locked->warehouse,
                         product: $item->product,
-                        quantity: $item->quantity,
+                        quantity: $quantity,
                         movementType: $locked->adjustment_type === 'opening' ? 'opening' : 'adjustment_in',
                         referenceNo: $locked->adjustment_no,
                         sourceType: 'stock_adjustment',
@@ -49,15 +55,18 @@ class StockAdjustmentService
                         transactionDate: $locked->adjustment_date->toDateString(),
                     );
                 } else {
+                    $lineCost = $this->costing->issue($locked->warehouse, $item->product, $quantity);
+                    $effectiveUnitCost = $quantity > 0 ? $lineCost / $quantity : $unitCost;
+                    $inventoryValue += $lineCost;
                     $this->inventory->stockOut(
                         warehouse: $locked->warehouse,
                         product: $item->product,
-                        quantity: $item->quantity,
+                        quantity: $quantity,
                         movementType: 'adjustment_out',
                         referenceNo: $locked->adjustment_no,
                         sourceType: 'stock_adjustment',
                         sourceId: $locked->id,
-                        unitCost: $unitCost,
+                        unitCost: $effectiveUnitCost,
                         description: $locked->reason,
                         transactionDate: $locked->adjustment_date->toDateString(),
                         strictAvailability: true,

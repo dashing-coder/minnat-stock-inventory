@@ -1,4 +1,6 @@
 @extends('layouts.app')
-@php($edit=(bool)$row)
+@php
+    $edit=(bool)$row;
+@endphp
 @section('title',$edit?__('Edit Expense Category'):__('New Expense Category')) @section('heading',$edit?__('Edit Expense Category'):__('New Expense Category'))
 @section('content')<form method="POST" action="{{ $edit?route('expense-categories.update',$row):route('expense-categories.store') }}" class="card card-body">@csrf @if($edit)@method('PUT')@endif<div class="row g-3"><div class="col-md-5"><label>{{ __('Name') }}</label><input name="name" value="{{ old('name',$row?->name) }}" class="form-control" required></div><div class="col-md-5"><label>{{ __('Default Expense Account') }}</label><select name="expense_account_id" class="form-select"><option value="">{{ __('Select') }}</option>@foreach($accounts as $a)<option value="{{ $a->id }}" @selected(old('expense_account_id',$row?->expense_account_id)==$a->id)>{{ $a->code }} - {{ $a->name }}</option>@endforeach</select></div><div class="col-md-2 d-flex align-items-end"><div class="form-check"><input type="checkbox" name="is_active" value="1" class="form-check-input" @checked(old('is_active',$row?->is_active??true))><label class="form-check-label">{{ __('Active') }}</label></div></div></div><div class="mt-3"><button class="btn btn-primary">{{ __('Save') }}</button></div></form>@endsection

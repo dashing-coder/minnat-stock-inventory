@@ -7,25 +7,27 @@
 @endsection
 
 @section('actions')
-    <div class="erp-date-pill"><i class="bi bi-calendar3"></i>{{ now()->startOfMonth()->format(config('erp.date_format', 'Y-m-d')) }} - {{ now()->format(config('erp.date_format', 'Y-m-d')) }}</div>
+    <div class="erp-date-pill"><i class="bi bi-calendar3"></i>{{ now()->startOfMonth()->format('d M, Y') }} - {{ now()->format('d M, Y') }}</div>
 @endsection
 
 @section('content')
 @php
-    $currency = config('erp.currency', 'USD');
+    $currency = '৳';
     $kpis = [
-        ['label' => "Today's Sales",      'value' => $stats['today_sales'],      'icon' => 'bi-cart-check',       'color' => 'green',  'money' => true],
-        ['label' => "Today's Purchases",  'value' => $stats['today_purchases'],  'icon' => 'bi-bag-plus',         'color' => 'purple', 'money' => true],
-        ['label' => 'This Month Sales',    'value' => $stats['month_sales'],      'icon' => 'bi-graph-up-arrow',   'color' => 'blue',   'money' => true],
-        ['label' => 'This Month Purchases','value' => $stats['month_purchases'],  'icon' => 'bi-cart3',            'color' => 'orange', 'money' => true],
+        ['label' => "Today's Net Sales",  'value' => $stats['today_sales'],      'icon' => 'bi-cart-check',       'color' => 'green',  'money' => true],
+        ['label' => "Today's Net Purchases", 'value' => $stats['today_purchases'],  'icon' => 'bi-bag-plus',         'color' => 'purple', 'money' => true],
+        ['label' => 'Month Net Sales',      'value' => $stats['month_sales'],      'icon' => 'bi-graph-up-arrow',   'color' => 'blue',   'money' => true],
+        ['label' => 'Month Net Purchases',  'value' => $stats['month_purchases'],  'icon' => 'bi-cart3',            'color' => 'orange', 'money' => true],
         ['label' => 'Total Receivable',    'value' => $stats['receivable'],       'icon' => 'bi-person-check',     'color' => 'teal',   'money' => true],
         ['label' => 'Total Payable',       'value' => $stats['payable'],          'icon' => 'bi-person-dash',      'color' => 'red',    'money' => true],
+        ['label' => 'Month Net Profit (GL)', 'value' => $stats['month_net_profit'], 'icon' => 'bi-graph-up', 'color' => 'teal', 'money' => true],
         ['label' => 'Stock Value',         'value' => $stats['stock_value'],      'icon' => 'bi-box-seam',         'color' => 'blue',   'money' => true],
         ['label' => 'Low Stock Items',     'value' => $stats['low_stock'],        'icon' => 'bi-exclamation-triangle', 'color' => 'orange', 'money' => false],
+        ['label' => 'Excess Stock Items',  'value' => $stats['excess_stock'],     'icon' => 'bi-box-arrow-up',      'color' => 'red',    'money' => false],
         ['label' => 'Total Customers',     'value' => $stats['customers'],        'icon' => 'bi-people',           'color' => 'purple', 'money' => false],
         ['label' => 'Total Suppliers',     'value' => $stats['suppliers'],        'icon' => 'bi-person-badge',     'color' => 'green',  'money' => false],
         ['label' => 'Total Products',      'value' => $stats['products'],         'icon' => 'bi-boxes',            'color' => 'blue',   'money' => false],
-        ['label' => 'Total Expenses',      'value' => $stats['month_expenses'],   'icon' => 'bi-wallet2',          'color' => 'pink',   'money' => true],
+        ['label' => 'Month Operating Expenses', 'value' => $stats['month_expenses'],   'icon' => 'bi-wallet2',          'color' => 'pink',   'money' => true],
     ];
 
     if (array_key_exists('total_cash', $stats)) {
@@ -44,36 +46,56 @@
     $expenseValues = $expenseBreakdown->pluck('total')->map(fn ($value) => (float) $value)->values()->all();
 @endphp
 
+<div class="erp-dashboard-v2">
+    <div class="erp-dashboard-intro">
+        <div>
+            <div class="erp-dashboard-eyebrow"><i class="bi bi-activity" aria-hidden="true"></i> {{ __('Business performance') }} <span class="erp-overview-dot" aria-hidden="true"></span> {{ __('Posted entries only') }}</div>
+            <h2>{{ __('Financial & Inventory Overview') }}</h2>
+            <p>{{ __('Sales and purchases are net of posted returns. Figures cover the period through today; balances and stock value are current.') }}</p>
+        </div>
+        <div class="erp-dashboard-quick-actions">
+            @can('sales.create')<a class="erp-quick-action primary" href="{{ route('sales.create') }}"><i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('New Sale') }}</a>@endcan
+            @can('purchases.create')<a class="erp-quick-action" href="{{ route('purchases.create') }}"><i class="bi bi-cart-plus" aria-hidden="true"></i> {{ __('Purchase') }}</a>@endcan
+            @can('reports.view')<a class="erp-quick-action" href="{{ route('reports.index') }}"><i class="bi bi-file-earmark-bar-graph" aria-hidden="true"></i> {{ __('Reports') }}</a>@endcan
+        </div>
+    </div>
+    <div class="erp-dashboard-section-header"><h3>{{ __('Key metrics') }}</h3><span>{{ __('Updated from recorded transactions') }}</span></div>
 <div class="erp-kpi-grid">
     @foreach($kpis as $kpi)
         <div class="erp-kpi-card">
             <div class="erp-kpi-icon {{ $kpi['color'] }}"><i class="bi {{ $kpi['icon'] }}"></i></div>
             <div class="min-w-0">
                 <div class="erp-kpi-label">{{ $kpi['label'] }}</div>
-                <div class="erp-kpi-value">
+                <div class="erp-kpi-value {{ (float) $kpi['value'] < 0 ? 'is-negative' : '' }}">
                     @if($kpi['money']){{ $currency }} {{ number_format((float)$kpi['value'], 2) }}@else{{ number_format((float)$kpi['value']) }}@endif
                 </div>
-                @if(in_array($kpi['label'], ["Today's Sales", "Today's Purchases", 'This Month Sales', 'This Month Purchases']))
-                    <div class="erp-kpi-meta positive"><i class="bi bi-arrow-up-short"></i> {{ __('live from posted transactions') }}</div>
+                @if(in_array($kpi['label'], ["Today's Net Sales", "Today's Net Purchases", 'Month Net Sales', 'Month Net Purchases']))
+                    <div class="erp-kpi-meta">{{ __('After posted returns') }}</div>
+                @elseif($kpi['label'] === 'Month Net Profit (GL)')
+                    <div class="erp-kpi-meta">{{ __('Income less all GL expenses') }}</div>
+                @elseif($kpi['label'] === 'Stock Value')
+                    <div class="erp-kpi-meta">{{ __('FIFO / weighted average') }}</div>
                 @endif
             </div>
         </div>
     @endforeach
 </div>
 
+<div class="erp-dashboard-section-header"><h3>{{ __('Detailed analysis') }}</h3><span>{{ __('Current month and latest activity') }}</span></div>
 <div class="erp-dashboard-grid">
     <section class="erp-panel span-5">
         <div class="erp-panel-head">
-            <h2 class="erp-panel-title">{{ __('Sales & Purchases Overview') }}</h2>
+            <h2 class="erp-panel-title">{{ __('Net Sales & Purchases') }}</h2>
             <span class="erp-panel-action">{{ __('This Month') }}</span>
         </div>
         <div class="erp-panel-body">
-            <div class="erp-chart-wrap"><canvas id="salesPurchaseChart"></canvas></div>
+            <div class="erp-chart-wrap"><canvas id="salesPurchaseChart" role="img" aria-label="Daily net sales and purchases, month to date"></canvas></div>
+            <p class="erp-chart-note">{{ __('Posted invoices less posted returns, by transaction date.') }}</p>
         </div>
     </section>
 
     <section class="erp-panel span-3">
-        <div class="erp-panel-head"><h2 class="erp-panel-title">{{ __('Top Selling Products') }}</h2></div>
+        <div class="erp-panel-head"><h2 class="erp-panel-title">{{ __('Top Products · Gross Sales') }}</h2></div>
         <div class="erp-panel-body">
             @if($topProducts->count())
                 <div class="erp-chart-wrap compact"><canvas id="topProductsChart"></canvas></div>
@@ -124,8 +146,8 @@
     </section>
 
     <section class="erp-panel span-4">
-        <div class="erp-panel-head"><h2 class="erp-panel-title">{{ __('Cash Flow') }}</h2></div>
-        <div class="erp-panel-body"><div class="erp-chart-wrap compact"><canvas id="cashFlowChart"></canvas></div></div>
+        <div class="erp-panel-head"><h2 class="erp-panel-title">{{ __('Cash & Bank Movements (GL)') }}</h2></div>
+        <div class="erp-panel-body"><div class="erp-chart-wrap compact"><canvas id="cashFlowChart" role="img" aria-label="Posted cash and bank journal inflow and outflow"></canvas></div><p class="erp-chart-note">{{ __('Gross posted journal debits and credits; internal account transfers are included.') }}</p></div>
     </section>
 
     <section class="erp-panel span-4">
@@ -141,18 +163,48 @@
         <div class="erp-panel-body p-0 px-2 pb-2">
             <div class="table-responsive">
                 <table class="erp-mini-table">
-                    <thead><tr><th>{{ __('Product') }}</th><th>{{ __('SKU') }}</th><th>{{ __('Stock') }}</th><th>{{ __('Reorder') }}</th><th>{{ __('Status') }}</th></tr></thead>
+                    <thead><tr><th>{{ __('Product') }}</th><th>{{ __('SKU') }}</th><th>{{ __('Available') }}</th><th>{{ __('Reorder') }}</th><th>{{ __('Status') }}</th></tr></thead>
                     <tbody>
                     @forelse($lowStockItems as $item)
                         <tr>
                             <td><div class="erp-low-name">{{ $item->name }}</div><div class="erp-low-meta">{{ $item->warehouse_name }}</div></td>
                             <td>{{ $item->sku }}</td>
-                            <td class="erp-stock-number">{{ number_format((float)$item->quantity, 0) }}</td>
+                            <td class="erp-stock-number">{{ number_format(max(0, (float)$item->quantity - (float)$item->reserved_quantity), 2) }}</td>
                             <td>{{ number_format((float)$item->reorder_level, 0) }}</td>
                             <td><span class="erp-badge orange">{{ __('Low Stock') }}</span></td>
                         </tr>
                     @empty
                         <tr><td colspan="5" class="erp-empty">{{ __('No low-stock products.') }}</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="erp-panel span-4">
+        <div class="erp-panel-head">
+            <h2 class="erp-panel-title">{{ __('Excess Stock Items') }}</h2>
+            @can('inventory.view')<a class="erp-panel-action" href="{{ route('inventory.excess-stock') }}">{{ __('View All') }}</a>@endcan
+        </div>
+        <div class="erp-panel-body p-0 px-2 pb-2">
+            <div class="table-responsive">
+                <table class="erp-mini-table">
+                    <thead><tr><th>{{ __('Product') }}</th><th>{{ __('SKU') }}</th><th>{{ __('Available') }}</th><th>{{ __('Maximum') }}</th><th>{{ __('Excess') }}</th></tr></thead>
+                    <tbody>
+                    @forelse($excessStockItems as $item)
+                        @php
+                            $available = max(0,(float)$item->quantity-(float)$item->reserved_quantity);
+                        @endphp
+                        <tr>
+                            <td><div class="erp-low-name">{{ $item->name }}</div><div class="erp-low-meta">{{ $item->warehouse_name }}</div></td>
+                            <td>{{ $item->sku }}</td>
+                            <td>{{ number_format($available,0) }}</td>
+                            <td>{{ number_format((float)$item->maximum_stock_level,0) }}</td>
+                            <td><span class="erp-badge red">+{{ number_format(max(0,$available-(float)$item->maximum_stock_level),0) }}</span></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="erp-empty">{{ __('No excess-stock products.') }}</td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -187,7 +239,9 @@
             @can('reports.view')<a class="erp-panel-action" href="{{ route('reports.sales') }}">{{ __('View Report') }}</a>@endcan
         </div>
         <div class="erp-panel-body">
-            @php($categoryMax = max(1, (float)$salesByCategory->max('total')))
+            @php
+                $categoryMax = max(1, (float)$salesByCategory->max('total'));
+            @endphp
             @forelse($salesByCategory as $item)
                 <div class="erp-category-row">
                     <div class="text-truncate">{{ $item->name }}</div>
@@ -239,6 +293,7 @@
         </section>
     @endif
 </div>
+</div>{{-- erp-dashboard-v2 --}}
 @endsection
 
 @push('scripts')
@@ -249,10 +304,10 @@
 
     Chart.defaults.font.family = 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
     Chart.defaults.color = '#738096';
-    Chart.defaults.font.size = 9;
+    Chart.defaults.font.size = 11;
 
     const gridColor = '#eef1f5';
-    const tooltipMoney = value => @json($currency . ' ') + Number(value || 0).toLocaleString(undefined, {maximumFractionDigits: 0});
+    const tooltipMoney = value => '৳ ' + Number(value || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
     const salesPurchase = @json($salesPurchaseChart);
     new Chart(document.getElementById('salesPurchaseChart'), {

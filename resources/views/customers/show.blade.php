@@ -8,7 +8,9 @@
 <div class="card"><div class="card-body"><div class="row g-3">
 <div class="col-md-4"><strong>{{ __('Code') }}</strong><div>{{ $customer->code }}</div></div>
 <div class="col-md-4"><strong>{{ __('Group') }}</strong><div>{{ $customer->group?->name ?: '-' }}</div></div>
+<div class="col-md-4"><strong>{{ __('Market') }}</strong><div>{{ $customer->marketHierarchy?->path_label ?: '-' }}</div></div>
 <div class="col-md-4"><strong>{{ __('Status') }}</strong><div>{{ $customer->is_active ? __('Active') : __('Inactive') }}</div></div>
+<div class="col-md-4"><strong>{{ __('Ledger Balance') }}</strong><div>{{ number_format(abs((float)$customer->current_balance),2) }} {{ (float)$customer->current_balance >= 0 ? __('Due') : __('Advance') }}</div></div>
 <div class="col-md-4"><strong>{{ __('Phone') }}</strong><div>{{ $customer->phone ?: '-' }}</div></div>
 <div class="col-md-4"><strong>{{ __('Email') }}</strong><div>{{ $customer->email ?: '-' }}</div></div>
 <div class="col-md-4"><strong>{{ __('Company') }}</strong><div>{{ $customer->company_name ?: '-' }}</div></div>

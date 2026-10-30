@@ -1,0 +1,11 @@
+{
+  "app/Http/Controllers/DashboardController.php": "3e9089d72bd81bd771c8920699acf0235e4c53cb67b5b10e42a62ff7ba203c95",
+  "app/Services/SellerAccountService.php": "d8b8f6490abcfccb052461738a8f1b5342d8215124e5e0f2fce03249a6aae27a",
+  "app/Services/DashboardCalculationService.php": "68f0838b1f85afdd48fb0e6dd899ea098f623607e4ef1189aec776cecd4a59ee",
+  "resources/views/dashboard/index.blade.php": "4b8db806b8c9512137ec1272b3b0fa09a1e4611f16aa184aca3ec8f827ded88c",
+  "resources/views/dashboard/seller.blade.php": "dce62fd6c98c10fa3ea5789c452ebcd37e30851d576def6b38021fcd6c71c5aa",
+  "public/css/erp-admin.css": "3dde76a9b80ef6e0d17ef02808f9842ee30f8cf023d7a2746a93590816e44a93",
+  "tests/Unit/DashboardCalculationServiceTest.php": "b3b5058d556f3c82d293cdccd415fd8fce6fa7da1327698991b3848c2244b3b1",
+  "tests/Feature/DashboardRoleIsolationTest.php": "1838a73f0172cfd7463a99093220b7b5887b4181c7c7a5e2013eb2dcc4751b1b",
+  "DASHBOARD_ACCURACY_UI_RELEASE_NOTES_2026_10_28.md": "7f290bf79e5b7243a8c2320f930cbe67f4a3f73e7e624e61689c88a25a7ed9fe"
+}

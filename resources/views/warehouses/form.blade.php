@@ -10,6 +10,6 @@
 <div class="col-12"><label class="form-label">{{ __('Address') }}</label><textarea class="form-control" name="address">{{ old('address',$item->address) }}</textarea></div>
 <div class="col-md-6"><label class="form-label">{{ __('Default') }}</label><select class="form-select" name="is_default"><option value="0" @selected(old('is_default',$item->is_default??0)==0)>{{ __('No') }}</option><option value="1" @selected(old('is_default',$item->is_default??0)==1)>{{ __('Yes') }}</option></select></div>
 <div class="col-md-6"><label class="form-label">{{ __('Status') }}</label><select class="form-select" name="is_active"><option value="1" @selected(old('is_active',$item->exists?$item->is_active:1)==1)>{{ __('Active') }}</option><option value="0" @selected(old('is_active',$item->exists?$item->is_active:1)==0)>{{ __('Inactive') }}</option></select></div>
-</div></div><div class="card-footer bg-white"><button class="btn btn-primary">{{ __('Save') }}</button> <a class="btn btn-outline-secondary" href="{{ route('warehouses.index') }}">{{ __('Cancel') }}</a></div></div>
+</div><div class="form-text mt-3">{{ __('A default warehouse must remain active. Warehouses with stock or active reservations cannot be deactivated; historical warehouses cannot be deleted.') }}</div></div><div class="card-footer bg-white"><button class="btn btn-primary">{{ __('Save') }}</button> <a class="btn btn-outline-secondary" href="{{ route('warehouses.index') }}">{{ __('Cancel') }}</a></div></div>
 </form>
 @endsection

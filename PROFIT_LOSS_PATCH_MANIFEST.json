@@ -1,0 +1,20 @@
+{
+  "product": "M/S Afrin Traders ERP",
+  "module": "Profit & Loss Reports",
+  "date": "2026-10-30",
+  "base_release": "afrin_traders_erp_ledger_cashbook_fixed_2026_10_30.zip",
+  "final_qa": "pending live MySQL/XAMPP and PHPUnit",
+  "code_qa": "syntax, Blade compile, route/command and offline arithmetic smoke tests passed",
+  "migrations_added": 0,
+  "database_modified": false,
+  "changed_files": {
+    "app/Http/Controllers/ReportController.php": "7abb3b9dac151083aa3605429b18fbcc37d012ed4f5f9012b8c1204f64289be0",
+    "app/Services/Reports/ProfitLossReportService.php": "75866e22782105d26158ebcbe3f41e7445aa67b0349ff6507d452262dd4db551",
+    "app/Services/Reports/ProfitLossAuditService.php": "c494f51680d708ad2e3de1371785721068b57f69add5842762a6eb6d6df2aa9b",
+    "resources/views/reports/profit-loss.blade.php": "ffbecab14612dd95fec6b80375f0ece2078a63ee2ad807d86c95338fa3be7039",
+    "routes/console.php": "3a69e301f0d44fe1793e2d2f5f42f595fc3236fb57eeff7fe8f51f65bc04af71",
+    "tests/Feature/ProfitLossAccuracyRegressionTest.php": "68db0f44dea127de72d42a53ac2ce8ebc726d8529d32a5f31bc8d68a45319291",
+    "scripts/verify_profit_loss_patch.php": "139427b36e3ba212644fe2586e25a3b4c46fbb33f469c0dc735a55a2da94fa25",
+    "PROFIT_LOSS_REPORTS_QA_RELEASE_2026_10_30.md": "42c1d7ed39480d088669be214565c58c045d971846d444fd1ebcf2eb2488244b"
+  }
+}

@@ -9,7 +9,8 @@ use App\Services\Inventory\StockTransferService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use RuntimeException;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class StockTransferController extends Controller
 {
@@ -53,18 +54,20 @@ class StockTransferController extends Controller
 
     public function edit(StockTransfer $stockTransfer)
     {
-        abort_if($stockTransfer->status==='posted',422,__('Posted transfer cannot be edited.'));
+        abort_unless($stockTransfer->status==='draft',422,__('Only draft transfers can be edited.'));
         $stockTransfer->load('items');
         return view('stock_transfers.form',$this->formData($stockTransfer));
     }
 
     public function update(Request $request, StockTransfer $stockTransfer)
     {
-        abort_if($stockTransfer->status==='posted',422,__('Posted transfer cannot be edited.'));
+        abort_unless($stockTransfer->status==='draft',422,__('Only draft transfers can be edited.'));
         $data=$this->validateData($request);
         DB::transaction(function() use($data,$stockTransfer){
             $locked=StockTransfer::whereKey($stockTransfer->id)->lockForUpdate()->firstOrFail();
-            if($locked->status==='posted') throw new RuntimeException('Posted transfer cannot be edited.');
+            if ($locked->status !== 'draft') {
+                throw ValidationException::withMessages(['transfer' => __('Only draft transfers can be edited.')]);
+            }
             $items=$data['items']; unset($data['items']);
             $locked->update($data);
             $locked->items()->delete();
@@ -75,8 +78,15 @@ class StockTransferController extends Controller
 
     public function destroy(StockTransfer $stockTransfer)
     {
-        abort_if($stockTransfer->status==='posted',422,__('Posted transfer cannot be deleted.'));
-        $stockTransfer->delete();
+        DB::transaction(function () use ($stockTransfer) {
+            // The row lock serialises deletion and posting, preventing removal of
+            // a transfer after another request has begun posting it.
+            $locked = StockTransfer::query()->whereKey($stockTransfer->id)->lockForUpdate()->firstOrFail();
+            if ($locked->status !== 'draft') {
+                throw ValidationException::withMessages(['transfer' => __('Only draft transfers can be deleted.')]);
+            }
+            $locked->delete();
+        }, 3);
         return redirect()->route('stock-transfers.index')->with('success',__('Draft transfer deleted.'));
     }
 
@@ -98,14 +108,15 @@ class StockTransferController extends Controller
     private function validateData(Request $request): array
     {
         return $request->validate([
-            'from_warehouse_id'=>['required','exists:warehouses,id'],
-            'to_warehouse_id'=>['required','different:from_warehouse_id','exists:warehouses,id'],
+            'from_warehouse_id'=>['required', Rule::exists('warehouses', 'id')->where('is_active', 1)->whereNull('deleted_at')],
+            'to_warehouse_id'=>['required','different:from_warehouse_id', Rule::exists('warehouses', 'id')->where('is_active', 1)->whereNull('deleted_at')],
             'transfer_date'=>['required','date'],
             'notes'=>['nullable','string','max:2000'],
             'items'=>['required','array','min:1'],
-            'items.*.product_id'=>['required','distinct','exists:products,id'],
-            'items.*.quantity'=>['required','numeric','gt:0'],
-            'items.*.unit_cost'=>['nullable','numeric','min:0'],
+            'items.*.product_id'=>['required','distinct', Rule::exists('products', 'id')->where('is_active', 1)->where('track_stock', 1)->whereNull('deleted_at')],
+            'items.*.quantity'=>['required','numeric','gt:0','decimal:0,4','max:99999999999999'],
+            // Unit cost is computed from source FIFO / average layers during posting.
+            // Never trust a client-provided cost for a warehouse transfer.
         ]);
     }
 }

@@ -25,14 +25,24 @@ class StockAdjustmentController extends Controller
 
     public function create()
     {
-        return view('stock_adjustments.form',$this->formData(new StockAdjustment([
+        $item = new StockAdjustment([
             'adjustment_date'=>now()->toDateString(),'status'=>'draft','adjustment_type'=>'opening',
-        ])));
+        ]);
+        return view('stock_adjustments.form',$this->formData($item) + ['damageMode'=>false]);
+    }
+
+    public function createDamage()
+    {
+        $item = new StockAdjustment([
+            'adjustment_date'=>now()->toDateString(),'status'=>'draft','adjustment_type'=>'damage',
+        ]);
+        return view('stock_adjustments.form',$this->formData($item) + ['damageMode'=>true]);
     }
 
     public function store(Request $request)
     {
         $data=$this->validateData($request);
+        $isDamage = ($data['adjustment_type'] ?? null) === 'damage';
         $adjustment=DB::transaction(function() use($data){
             $items=$data['items']; unset($data['items']);
             $data['adjustment_no']='TMP-'.Str::uuid();
@@ -43,7 +53,9 @@ class StockAdjustmentController extends Controller
             $adjustment->items()->createMany($items);
             return $adjustment;
         });
-        return redirect()->route('stock-adjustments.show',$adjustment)->with('success',__('Stock adjustment saved as draft.'));
+        return redirect()
+            ->route($isDamage ? 'inventory.damaged-goods' : 'stock-adjustments.show', $isDamage ? [] : [$adjustment])
+            ->with('success',$isDamage ? __('Damaged goods record saved as draft. Post it to reduce stock and record the loss.') : __('Stock adjustment saved as draft.'));
     }
 
     public function show(StockAdjustment $stockAdjustment)
@@ -56,7 +68,7 @@ class StockAdjustmentController extends Controller
     {
         abort_if($stockAdjustment->status==='posted',422,__('Posted adjustment cannot be edited.'));
         $stockAdjustment->load('items');
-        return view('stock_adjustments.form',$this->formData($stockAdjustment));
+        return view('stock_adjustments.form',$this->formData($stockAdjustment) + ['damageMode'=>$stockAdjustment->adjustment_type === 'damage']);
     }
 
     public function update(Request $request, StockAdjustment $stockAdjustment)
@@ -83,8 +95,11 @@ class StockAdjustmentController extends Controller
 
     public function post(StockAdjustment $stockAdjustment)
     {
+        $isDamage = $stockAdjustment->adjustment_type === 'damage';
         $this->service->post($stockAdjustment);
-        return redirect()->route('stock-adjustments.show',$stockAdjustment)->with('success',__('Stock adjustment posted.'));
+        return redirect()
+            ->route($isDamage ? 'inventory.damaged-goods' : 'stock-adjustments.show', $isDamage ? [] : [$stockAdjustment])
+            ->with('success',$isDamage ? __('Damaged goods posted. Stock and inventory loss accounting were updated.') : __('Stock adjustment posted.'));
     }
 
     private function formData(StockAdjustment $item): array
@@ -102,7 +117,7 @@ class StockAdjustmentController extends Controller
             'warehouse_id'=>['required','exists:warehouses,id'],
             'adjustment_date'=>['required','date'],
             'adjustment_type'=>['required',Rule::in(['opening','increase','found','decrease','damage','expired','lost','internal_use'])],
-            'reason'=>['nullable','string','max:1000'],
+            'reason'=>[Rule::requiredIf(fn () => $request->input('adjustment_type') === 'damage'),'nullable','string','max:1000'],
             'notes'=>['nullable','string','max:2000'],
             'items'=>['required','array','min:1'],
             'items.*.product_id'=>['required','distinct','exists:products,id'],

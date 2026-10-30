@@ -1,0 +1,98 @@
+{
+  "source": "uploaded SQL export, NOT running XAMPP database",
+  "counts": {
+    "stocks": 543,
+    "movements": 550,
+    "cost_layers": 540,
+    "batches": 0,
+    "transfers": 2
+  },
+  "stock_vs_movements_mismatches": 0,
+  "stock_vs_cost_layers_mismatches": 0,
+  "batch_tracked_mismatches": 0,
+  "stock_vs_movements_examples": [],
+  "stock_vs_layers_examples": [],
+  "batch_examples": [],
+  "posted_transfers_without_matching_movements": [
+    {
+      "transfer_no": "TRF-000001",
+      "product_id": "100",
+      "expected": "20.0000",
+      "movement_out": "0",
+      "movement_in": "0"
+    },
+    {
+      "transfer_no": "TRF-000002",
+      "product_id": "300",
+      "expected": "10.0000",
+      "movement_out": "0",
+      "movement_in": "0"
+    }
+  ],
+  "gl_inventory_balance_1200": "2669085.01",
+  "stock_valuation": "1244700.01000000",
+  "gl_minus_stock_valuation": "1424385.00000000",
+  "largest_inventory_gl_source_entries": [
+    {
+      "type": "opening",
+      "reference": "OPENING",
+      "gl_amount": "1000000.00"
+    },
+    {
+      "type": "purchase_summary",
+      "reference": "PUR-2026-08",
+      "gl_amount": "316085.00"
+    },
+    {
+      "type": "purchase_summary",
+      "reference": "PUR-2026-07",
+      "gl_amount": "309600.00"
+    },
+    {
+      "type": "purchase_summary",
+      "reference": "PUR-2026-06",
+      "gl_amount": "295200.00"
+    },
+    {
+      "type": "purchase_summary",
+      "reference": "PUR-2026-05",
+      "gl_amount": "280800.00"
+    },
+    {
+      "type": "purchase_summary",
+      "reference": "PUR-2026-04",
+      "gl_amount": "252000.00"
+    },
+    {
+      "type": "purchase_summary",
+      "reference": "PUR-2026-03",
+      "gl_amount": "216000.00"
+    },
+    {
+      "type": "sale",
+      "reference": "SAL-2026-000053",
+      "gl_amount": "-200.00"
+    },
+    {
+      "type": "sale",
+      "reference": "SAL-2026-000056",
+      "gl_amount": "-200.00"
+    },
+    {
+      "type": "sale_return",
+      "reference": "SRT-2026-000003",
+      "gl_amount": "100.01"
+    },
+    {
+      "type": "sale",
+      "reference": "SAL-2026-000046",
+      "gl_amount": "-100.00"
+    },
+    {
+      "type": "sale",
+      "reference": "SAL-2026-000057",
+      "gl_amount": "-100.00"
+    }
+  ],
+  "disclaimer": "This is an archived SQL dump audit, not a read of your current localhost database. Never auto-post GL adjustments from this report."
+}

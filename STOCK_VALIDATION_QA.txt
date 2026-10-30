@@ -1,0 +1,44 @@
+M/S Afrin Traders ERP — Stock Validation QA
+Date: 2026-10-01
+
+IMPLEMENTED
+- Sales create/edit browser validation uses selected warehouse stock.
+- Duplicate sale lines are aggregated by product before validation.
+- Equal-to-stock quantity is allowed.
+- Greater-than-stock quantity is blocked.
+- Server-side draft create/update validation added.
+- Server-side post-time aggregate revalidation added.
+- Final stock-out uses database row locking and strict availability enforcement.
+- Insufficient stock now raises Laravel ValidationException instead of an unhandled stock RuntimeException.
+- Strict stock-out enforcement enabled for all four current stock-decreasing workflows:
+  1. Sales
+  2. Stock Transfers
+  3. Negative Stock Adjustments
+  4. Purchase Returns
+- sale_items duplicate-product database constraint removed by migration/SQL patch.
+- English and Bangla stock validation messages added.
+
+STATIC QA
+- Project PHP files checked: 162
+- PHP syntax errors: 0
+- Blade templates compiled with Laravel BladeCompiler: 84
+- Blade compile/PHP syntax failures: 0
+- Sales form JavaScript syntax: PASS (Node.js --check)
+- Sales routes: PASS (Laravel route:list)
+- stockOut application call sites audited: 4
+- strictAvailability:true call sites: 4
+
+TEST COVERAGE ADDED
+- InventoryProtectionTest:
+  - blocks negative stock
+  - strict mode blocks oversell even when legacy allow_negative_stock=true
+  - exact available quantity is allowed
+- SaleStockValidationTest:
+  - 15 of 20 allowed
+  - 20 of 20 allowed
+  - 21 of 20 blocked
+  - duplicate rows 12 + 10 against 20 blocked
+  - duplicate rows 12 + 8 against 20 allowed
+
+RUNTIME TEST LIMITATION
+The container PHP runtime does not provide PDO SQLite / mbstring / DOM/XML extensions required to execute the full Laravel PHPUnit suite against the bundled SQLite test database. The added tests are included in the release, and all source, Blade compilation, route, and JavaScript syntax checks listed above passed.

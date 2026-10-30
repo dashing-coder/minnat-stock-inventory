@@ -1,0 +1,33 @@
+{
+  "project": "M/S Afrin Traders Laravel ERP",
+  "release": "2026-10-27 backup/off-site/recovery-drill patch",
+  "base": "afrin_traders_erp_bank_reconciliation_fixed_2026_10_27.zip",
+  "modified_files": {
+    "app/Services/BackupService.php": "990ce9783aaaba64d6ce965bfca9a30a2d3d0418a0a7d96eb71c134dd5f296cc",
+    "app/Services/BackupOffsiteService.php": "dc0b4df35fd49a91382ec81d2a98c7fac0532860702e02fdc4254ed2d46ba900",
+    "app/Services/BackupRecoveryDrillService.php": "f8f9b87607275642427d6a58589bb8b32fbfb296918befde3af28483d09998d1",
+    "app/Http/Controllers/BackupController.php": "ac4710a6e3236339e59e596786cf436dc5bf25e3a1250d3828182a577c192104",
+    "config/erp_backup.php": "576960b1afe24cd274e632b82999c16d1de2417265b6275bf05fa15b8422a592",
+    "config/filesystems.php": "822daae2de50185e27ed30067a67af5096eb1ba0358f0519eb45f066ba93192f",
+    "routes/console.php": "9b176666ab1947ca942044a11811df5bfd3962e074dedff0dba012e044765de4",
+    "routes/web.php": "3f61391b1a3217878ba83d19139b818205ed383eaa230ac403e2231290a85fef",
+    "resources/views/backups/index.blade.php": "5fe6f26c32d99a5d4dacbe74e177b2423436585ace727d45c3d374291b81b89a",
+    "tests/Feature/BackupDisasterRecoveryTest.php": "501abede63f10ef9121b361ce55e940aee2c2f1e50271968001b707b874e5dcf",
+    ".env.example": "3ec79ae92bd7e80b24a3982aadd246b482da0374aa4eb2d220d683195d804b07",
+    "BACKUP_OFFSITE_ENV_EXAMPLE.txt": "c024ada85e7823144797b0ba21976fd0f243f53f03c014b1e69f63213c686b26",
+    "BACKUP_DISASTER_RECOVERY_RELEASE_NOTES.md": "a40263b29fd5d2e2f3f02062201b79fe4aa4e2c64c8993ad3f0fcd2fa8527378"
+  },
+  "qa": {
+    "php_syntax_178_files": "passed",
+    "laravel_backup_routes_7": "registered",
+    "schedule_daily_backup_2am": "registered",
+    "blade_compile_and_lint": "passed",
+    "offsite_local_adapter_round_trip_sha256": "passed",
+    "offsite_recovery_after_local_loss": "passed",
+    "remote_tamper_rejection": "passed",
+    "drill_default_disabled_guard": "passed",
+    "real_s3_integration": "not executed (credentials and S3 adapter unavailable)",
+    "staging_mysql_full_recovery": "not executed (no MySQL/PDO MySQL here)",
+    "phpunit": "not executed (PHP DOM, mbstring and xmlwriter absent)"
+  }
+}

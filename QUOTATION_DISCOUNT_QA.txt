@@ -1,0 +1,45 @@
+M/S AFRIN TRADERS ERP - QUOTATION DISCOUNT TYPE + SUBTOTAL QA
+Date: 2026-09-30
+
+Scope
+-----
+- Quotations Create/Edit UI
+- Quotation item discount persistence
+- Backend discount calculation
+- Quotation grand-total formula
+- English/Bangla labels
+- Existing quotation compatibility
+
+Implemented
+-----------
+1. Discount Type: Fixed Amount / Percentage.
+2. Discount Value stored independently from calculated discount amount.
+3. Existing `quotation_items.discount` remains the calculated money amount.
+4. Discount Amount updates automatically.
+5. Final Subtotal updates automatically.
+6. Summary panel added: subtotal before discount, item discount, subtotal after discount, item tax, quotation total preview.
+7. Product/quantity/price/discount type/discount value/tax all trigger instant recalculation.
+8. Percentage > 100% is blocked in browser and backend.
+9. Fixed discount > product line subtotal is blocked in browser and backend.
+10. Historical quotation discounts migrate as Fixed Amount.
+11. Quotation grand total now subtracts item-level discounts.
+12. Edit mode separates stored aggregate tax into item tax + quotation-level tax to prevent double counting.
+
+Calculation checks
+------------------
+Base: Unit Price 1000 x Quantity 2 = 2000.00
+Percentage 10% => Discount 200.00 => Final Subtotal 1800.00
+Fixed 200 => Discount 200.00 => Final Subtotal 1800.00
+
+Static QA
+---------
+- Project PHP files linted: 170
+- PHP syntax errors: 0
+- Blade templates compiled: 84
+- Compiled Blade PHP syntax errors: 0
+- Quotation form JavaScript syntax check: PASS (Node.js --check)
+- Quotation routes registered: 8
+
+Environment limitation
+----------------------
+The local PHP runtime exposes PDO core but no PDO MySQL/SQLite driver, so the migration was not executed against a local database in this environment. Both a Laravel migration and a MariaDB/MySQL phpMyAdmin patch are included for deployment.

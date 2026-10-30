@@ -335,7 +335,7 @@
         <div class="info-grid">
             <div class="field-row">
                 <div class="field-label">{{ __('Memo No.') }}</div>
-                <div class="field-value">{{ $sale->invoice_no }}</div>
+                <div class="field-value">{{ $sale->invoice_no }} ({{ $sale->currency_code ?? 'BDT' }})</div>
             </div>
             <div class="field-row">
                 <div class="field-label">{{ __('Date') }}</div>
@@ -387,7 +387,8 @@
                     <tr>
                         <td class="center">{{ $loop->iteration }}</td>
                         <td class="desc">
-                            {{ $item->product?->name ?? __('Deleted product') }}
+                            {{ $item->product?->display_name ?? __('Deleted product') }}
+                            @if((float)($item->free_quantity ?? 0)>0)<div class="muted">{{ __('Free Qty') }}: {{ rtrim(rtrim(number_format((float)$item->free_quantity,4,'.',''),'0'),'.') }}</div>@endif
                             @if($item->product?->code)
                                 <div class="muted">{{ __('Code') }}: {{ $item->product->code }}</div>
                             @endif
@@ -415,9 +416,9 @@
                 <div class="notes-box">
                     <div class="notes-title">{{ __('Notes') }}</div>
                     <div>{{ $sale->notes ?: '—' }}</div>
-                    <div class="amount-words">
-                        {{ __('In Words') }}: {{ $memo['amount_in_words'] }}
-                    </div>
+                    @if($memo['amount_in_words'])
+                    <div class="amount-words">{{ __('Current Invoice In Words') }}: {{ $memo['amount_in_words'] }}</div>
+                    @endif
                 </div>
 
                 <div class="seller-band">
@@ -433,6 +434,9 @@
             </div>
 
             <table class="totals">
+                <tr><th>{{ __('Item Subtotal') }}</th><td>{{ number_format((float)$sale->subtotal,2) }}</td></tr>
+                <tr><th>{{ __('Invoice Discount') }}</th><td>−{{ number_format((float)$sale->discount,2) }}</td></tr>
+                <tr><th>{{ __('Invoice Tax') }}</th><td>{{ number_format((float)$sale->tax,2) }}</td></tr>
                 <tr>
                     <th>{{ __('Transport Charge') }}</th>
                     <td>{{ number_format((float) $sale->shipping, 2) }}</td>

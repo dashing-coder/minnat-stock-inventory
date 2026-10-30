@@ -1,0 +1,45 @@
+-- Products module completion patch (MySQL 5.7+)
+CREATE TABLE IF NOT EXISTS `product_deliveries` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `delivery_no` varchar(60) NOT NULL,
+  `delivery_type` varchar(20) NOT NULL,
+  `purchase_id` bigint unsigned DEFAULT NULL,
+  `sale_id` bigint unsigned DEFAULT NULL,
+  `warehouse_id` bigint unsigned NOT NULL,
+  `delivery_date` date NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'draft',
+  `reference` varchar(120) DEFAULT NULL,
+  `driver_name` varchar(150) DEFAULT NULL,
+  `vehicle_no` varchar(100) DEFAULT NULL,
+  `notes` text,
+  `created_by` bigint unsigned DEFAULT NULL,
+  `posted_by` bigint unsigned DEFAULT NULL,
+  `posted_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`), UNIQUE KEY `product_deliveries_delivery_no_unique` (`delivery_no`),
+  KEY `product_deliveries_delivery_type_delivery_date_index` (`delivery_type`,`delivery_date`),
+  KEY `product_deliveries_purchase_id_status_index` (`purchase_id`,`status`),
+  KEY `product_deliveries_sale_id_status_index` (`sale_id`,`status`),
+  CONSTRAINT `product_deliveries_purchase_id_foreign` FOREIGN KEY (`purchase_id`) REFERENCES `purchases` (`id`),
+  CONSTRAINT `product_deliveries_sale_id_foreign` FOREIGN KEY (`sale_id`) REFERENCES `sales` (`id`),
+  CONSTRAINT `product_deliveries_warehouse_id_foreign` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouses` (`id`),
+  CONSTRAINT `product_deliveries_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `product_deliveries_posted_by_foreign` FOREIGN KEY (`posted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `product_delivery_items` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `product_delivery_id` bigint unsigned NOT NULL,
+  `source_item_id` bigint unsigned NOT NULL,
+  `product_id` bigint unsigned NOT NULL,
+  `quantity` decimal(18,4) NOT NULL,
+  `remarks` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `product_delivery_items_delivery_source_unique` (`product_delivery_id`,`source_item_id`),
+  KEY `product_delivery_items_source_product_index` (`source_item_id`,`product_id`),
+  CONSTRAINT `product_delivery_items_delivery_foreign` FOREIGN KEY (`product_delivery_id`) REFERENCES `product_deliveries` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `product_delivery_items_product_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

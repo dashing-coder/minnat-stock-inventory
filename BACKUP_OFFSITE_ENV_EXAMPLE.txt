@@ -1,0 +1,22 @@
+# COPY ONLY THE SETTINGS YOU REQUIRE INTO YOUR EXISTING .env
+# NEVER OVERWRITE your .env; keep the existing APP_KEY unchanged.
+# To use S3-compatible storage, first install: composer require league/flysystem-aws-s3-v3 "^3.0" --with-all-dependencies
+# Configure a PRIVATE bucket on another server/region/account with versioning and retention.
+ERP_BACKUP_OFFSITE_ENABLED=false
+ERP_BACKUP_REQUIRE_OFFSITE=false
+ERP_BACKUP_OFFSITE_PREFIX=afrin-erp
+ERP_BACKUP_S3_KEY=
+ERP_BACKUP_S3_SECRET=
+ERP_BACKUP_S3_REGION=us-east-1
+ERP_BACKUP_S3_BUCKET=
+ERP_BACKUP_S3_ENDPOINT=
+ERP_BACKUP_S3_PATH_STYLE=false
+
+# Enable on a separate staging machine ONLY, using a dedicated, previously
+# schema-provisioned database named afrin_erp_restore_drill_<suffix>.
+ERP_BACKUP_DRILL_ENABLED=false
+ERP_BACKUP_DRILL_DATABASE=
+ERP_BACKUP_DRILL_HOST=127.0.0.1
+ERP_BACKUP_DRILL_PORT=3306
+ERP_BACKUP_DRILL_USERNAME=
+ERP_BACKUP_DRILL_PASSWORD=

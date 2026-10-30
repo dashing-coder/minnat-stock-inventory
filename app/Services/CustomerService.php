@@ -3,6 +3,7 @@ namespace App\Services;
 
 use App\Models\Customer;
 use App\Services\Accounting\AccountingService;
+use App\Services\PeriodLockService;
 use Illuminate\Support\Facades\DB;
 
 class CustomerService
@@ -15,6 +16,7 @@ class CustomerService
             $customer->update(['code'=>sprintf('CUS-%06d',$customer->id)]);
             $amount=(float)($data['opening_balance']??0);
             if($amount>0){
+                app(PeriodLockService::class)->assertOpen(now()->toDateString());
                 $advance=($data['opening_balance_type']??'receivable')==='advance';
                 if($advance)$this->ledger->credit($customer,$amount,'opening_balance','OPENING','Customer opening advance','customer_opening',$customer->id);
                 else $this->ledger->debit($customer,$amount,'opening_balance','OPENING','Customer opening receivable','customer_opening',$customer->id);

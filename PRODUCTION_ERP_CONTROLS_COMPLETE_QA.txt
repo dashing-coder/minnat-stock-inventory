@@ -1,0 +1,49 @@
+M/S Afrin Traders - Production ERP Controls QA
+Date: 2026-10-23
+Baseline: afrintraders-settings-complete-final.zip
+
+Implemented requirement groups:
+1. Fiscal Year / Accounting Period Closing - DONE
+2. Bank Reconciliation - DONE
+3. Tax / VAT Management - DONE
+4. Customer Credit Limit Enforcement - DONE
+5. Payment Terms Automation - DONE
+6. Maker-Checker / Approval Workflow - DONE
+7. Purchase Order / Sales Order - DONE
+8. Inventory Reservation Workflow - DONE
+9. Serial / IMEI Tracking - DONE
+10. Multi-Currency / Exchange Rate - DONE
+11. Full Disaster-Recovery Backup - DONE (DB + storage/app files)
+12. Document Attachments - DONE
+13. Automated Regression Coverage - EXPANDED
+14. Fixed Assets & Depreciation - DONE
+15. Budget / Cost Center / Project Accounting - DONE
+
+Static QA results:
+- PHP/application/test files linted: 186
+- PHP syntax failures: 0
+- Blade templates compiled/linted: 138/138
+- Raw Blade directives left after compilation: 0
+- Total registered routes: 318
+- Production Controls routes: 35
+- Missing named-route references: 0 (guarded optional password.request excluded)
+- EN JSON: valid
+- BN JSON: valid
+- Inline risky @php(...) patterns: 0
+- Feature tests in source: 23 across 6 files
+
+Important enforcement checks implemented:
+- Sale posting enforces customer credit limits.
+- Customer/Supplier payment terms auto-calculate due dates when blank.
+- Product tax_rate can auto-calculate Sale/Purchase item tax.
+- Fiscal-period lock is checked during posting and operational writes.
+- Maker-Checker creates pending approval requests before controlled posting; maker cannot approve own request.
+- Sales Orders reserve warehouse stock and release reservation during conversion to draft Sale.
+- Currency/exchange rate is stored on Sales/Purchases and accounting/ledger postings use base-currency conversion.
+- Fixed asset monthly depreciation posts Dr Depreciation Expense / Cr Accumulated Depreciation.
+- Expense journals carry Cost Center / Project dimensions for budget-vs-actual reporting.
+- Backup payload includes database tables and storage/app files (excluding backups themselves).
+
+Environment limitation:
+- The workspace PHP CLI exposes PDO core but no database PDO driver (no pdo_mysql/pdo_sqlite), so DB-backed migration execution and HTTP integration tests could not be executed here.
+- Static Laravel route boot, Blade compilation, PHP syntax validation, translation validation and source regression checks passed.

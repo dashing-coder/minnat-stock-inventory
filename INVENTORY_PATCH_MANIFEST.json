@@ -1,0 +1,47 @@
+{
+  "version": "2026-10-27-inventory-accuracy",
+  "base": "afrin_traders_erp_accounting_fixed_2026_10_27.zip",
+  "schema_changes": false,
+  "changes": [
+    {
+      "path": "app/Services/Inventory/InventoryCostingService.php",
+      "sha256": "6765eef278e35d8669675f6889cfbfffcd44fc7d93bd5a49a3fd470a8beb9a68"
+    },
+    {
+      "path": "app/Services/Inventory/InventoryService.php",
+      "sha256": "710f44a8eec9ce08a1597c9809fb44e26630853d5332867758914f274cddca4f"
+    },
+    {
+      "path": "app/Services/Inventory/StockTransferService.php",
+      "sha256": "052eb49811b647e5fdcbac2960148779ce088bb13d4b498e6a2f41294e8d22fe"
+    },
+    {
+      "path": "app/Services/Inventory/InventoryAuditService.php",
+      "sha256": "84522c464dee1c57910904fa01fa1a3f4bb49dbd1ce4609a724ba9f87879e1bb"
+    },
+    {
+      "path": "app/Services/Commercial/SaleReturnService.php",
+      "sha256": "512c79d2cbda8e6756adbb25a4c6eff89c87d4e5be44b0b3e3618b14c2014eff"
+    },
+    {
+      "path": "app/Services/Commercial/PurchaseReturnService.php",
+      "sha256": "342ed756bd3ef54aca4850cfdbac4d53550918e77ba87539c780ddd479ae6a23"
+    },
+    {
+      "path": "routes/console.php",
+      "sha256": "13537836555ffba26cafb064cc2b6c0cf92cdf5170fe312ce5cbf36881050138"
+    },
+    {
+      "path": "tests/Feature/InventoryCostingTransferRegressionTest.php",
+      "sha256": "d6f19cd9a10a806ee975b0885de800b6ed4e890951e0a3a69008282a8b286018"
+    },
+    {
+      "path": "INVENTORY_ACCURACY_RELEASE_NOTES.md",
+      "sha256": "e4c2c2ee54f65858a82353d45b6086b79f586f1015f51c86a125caedac9078e1"
+    },
+    {
+      "path": "SQL_EXPORT_INVENTORY_SNAPSHOT.json",
+      "sha256": "140a70a602259f7b27952b279a0261ad755941d295bc0b1ca3edf9ae8097857a"
+    }
+  ]
+}

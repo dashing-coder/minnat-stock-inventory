@@ -1,4 +1,0 @@
-@extends('layouts.app')
-@section('title','Expenses') @section('heading','Expenses')
-@section('actions')@can('expenses.create')<a href="{{ route('expenses.create') }}" class="btn btn-primary">New Expense</a>@endcan@endsection
-@section('content')<div class="card"><table class="table mb-0"><thead><tr><th>Date</th><th>No</th><th>Category</th><th>Description</th><th>Status</th><th class="money">Amount</th></tr></thead><tbody>@forelse($rows as $r)<tr><td>{{ $r->expense_date->format('Y-m-d') }}</td><td><a href="{{ route('expenses.show',$r) }}">{{ $r->expense_no }}</a></td><td>{{ $r->category->name }}</td><td>{{ $r->description }}</td><td>{{ $r->status }}</td><td class="money">{{ number_format($r->amount,2) }}</td></tr>@empty<tr><td colspan="6">No expenses.</td></tr>@endforelse</tbody></table></div>{{ $rows->links() }}@endsection

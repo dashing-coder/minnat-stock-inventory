@@ -3,7 +3,9 @@
 @section('heading', __('Receive Customer Payment'))
 
 @section('content')
-@php($isSeller = auth()->user()->hasRole('Seller'))
+@php
+    $isSeller = auth()->user()->hasRole('Seller');
+@endphp
 
 @if($isSeller)
     <div class="alert alert-info border-0 shadow-sm">

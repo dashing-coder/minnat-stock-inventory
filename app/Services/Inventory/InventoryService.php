@@ -7,7 +7,7 @@ use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Models\WarehouseStock;
 use App\Models\SystemNotification;
-use App\Models\Setting;
+use App\Support\StockLevel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
@@ -31,10 +31,7 @@ class InventoryService
             $unitCost, $description, $transactionDate
         ) {
             $this->assertTrackable($warehouse, $product);
-            $qty = (float) $quantity;
-            if ($qty <= 0) {
-                throw new RuntimeException('Stock-in quantity must be greater than zero.');
-            }
+            $qty = $this->validatedQuantity($quantity);
 
             $stock = $this->lockStock($warehouse, $product);
             $stock->quantity = (float) $stock->quantity + $qty;
@@ -69,15 +66,11 @@ class InventoryService
             $unitCost, $description, $transactionDate, $strictAvailability
         ) {
             $this->assertTrackable($warehouse, $product);
-            $qty = (float) $quantity;
-            if ($qty <= 0) {
-                throw new RuntimeException('Stock-out quantity must be greater than zero.');
-            }
+            $qty = $this->validatedQuantity($quantity);
 
             $stock = $this->lockStock($warehouse, $product);
-            $available = max(0, (float) $stock->quantity - (float) $stock->reserved_quantity);
+            $available = StockLevel::available((float) $stock->quantity, (float) $stock->reserved_quantity);
 
-<<<<<<< HEAD
             if (($strictAvailability || ! $product->allow_negative_stock) && $available + 0.0000001 < $qty) {
                 throw ValidationException::withMessages([
                     'stock' => __('Insufficient stock for :product. Available: :available, requested: :requested.', [
@@ -86,23 +79,23 @@ class InventoryService
                         'requested' => $this->formatQuantity($qty),
                     ]),
                 ]);
-=======
-            $allowNegative = Setting::boolean('allow_negative_stock', false) || $product->allow_negative_stock;
-            if (!$allowNegative && $available < $qty) {
-                throw new RuntimeException("Insufficient stock for {$product->name}. Available: {$available}");
->>>>>>> a903df116cf65a53178fd1bbf9f2abb17c72c5a5
             }
 
-            $stock->quantity = (float) $stock->quantity - $qty;
+            $previousStatus = StockLevel::status((float) $stock->quantity, (float) $stock->reserved_quantity, (float) $product->reorder_level);
+            $stock->quantity = round((float) $stock->quantity - $qty, 4);
             $stock->save();
 
-            if (Setting::boolean('low_stock_notifications', true) && (float) $stock->quantity <= (float) $product->reorder_level) {
+            // Alert only on threshold crossings, based on available (not physical)
+            // stock. Posting several low-stock sales should not flood notifications.
+            $status = StockLevel::status((float) $stock->quantity, (float) $stock->reserved_quantity, (float) $product->reorder_level);
+            if (in_array($status, ['low', 'out', 'negative'], true) && $previousStatus !== $status) {
+                $remaining = StockLevel::available((float) $stock->quantity, (float) $stock->reserved_quantity);
                 SystemNotification::create([
-                    'user_id'=>null,
-                    'type'=>(float)$stock->quantity <= 0 ? 'danger' : 'warning',
-                    'title'=>(float)$stock->quantity <= 0 ? 'Out of stock' : 'Low stock',
-                    'message'=>$product->name.' at '.$warehouse->name.' has '.number_format((float)$stock->quantity,4).' units remaining.',
-                    'link'=>'/inventory',
+                    'user_id' => null,
+                    'type' => $status === 'low' ? 'warning' : 'danger',
+                    'title' => $status === 'low' ? 'Low available stock' : 'Out of available stock',
+                    'message' => $product->name.' at '.$warehouse->name.' has '.number_format($remaining, 4).' available units (on hand minus reserved).',
+                    'link' => '/inventory',
                 ]);
             }
 
@@ -115,6 +108,17 @@ class InventoryService
                 'unit_cost'=>$unitCost,'description'=>$description,'created_by'=>auth()->id(),
             ]);
         });
+    }
+
+    private function validatedQuantity(string|float $quantity): float
+    {
+        if (!is_numeric($quantity) || !is_finite((float) $quantity) ||
+            (float) $quantity <= 0 || abs(round((float) $quantity, 4) - (float) $quantity) > 0.0000001) {
+            throw ValidationException::withMessages([
+                'quantity' => __('Stock quantity must be positive with at most four decimal places.'),
+            ]);
+        }
+        return round((float) $quantity, 4);
     }
 
     private function formatQuantity(float $quantity): string

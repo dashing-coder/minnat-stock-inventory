@@ -8,9 +8,9 @@
             ? $item->items->map(fn ($row) => [
                 'product_id' => $row->product_id,
                 'quantity' => $row->quantity,
-                'unit_cost' => $row->unit_cost,
+                
             ])->all()
-            : [['product_id' => '', 'quantity' => '', 'unit_cost' => '']]
+            : [['product_id' => '', 'quantity' => '']]
     );
 
     $productOptions = $products->map(fn ($product) => [
@@ -26,12 +26,12 @@
 <div class="col-12"><label class="form-label">{{ __('Notes') }}</label><textarea class="form-control" name="notes">{{ old('notes',$item->notes) }}</textarea></div>
 </div></div></div>
 
-<div class="card mb-3"><div class="card-header d-flex justify-content-between"><span>{{ __('Items') }}</span><button type="button" class="btn btn-sm btn-outline-primary" id="add-row">{{ __('Add Row') }}</button></div><div class="card-body">
-<div class="table-responsive"><table class="table" id="items-table"><thead><tr><th style="min-width:300px">{{ __('Product') }}</th><th>{{ __('Quantity') }}</th><th>{{ __('Unit Cost') }}</th><th></th></tr></thead><tbody>
+<div class="card mb-3"><div class="card-header d-flex justify-content-between"><span>{{ __('Items') }} <small class="text-muted">— {{ __('Cost calculated automatically when posted') }}</small></span><button type="button" class="btn btn-sm btn-outline-primary" id="add-row">{{ __('Add Row') }}</button></div><div class="card-body">
+<div class="table-responsive"><table class="table" id="items-table"><thead><tr><th style="min-width:300px">{{ __('Product') }}</th><th>{{ __('Quantity') }}</th><th></th></tr></thead><tbody>
 @foreach($rows as $i=>$row)<tr>
 <td><select class="form-select" name="items[{{ $i }}][product_id]" required><option value="">{{ __('Select Product') }}</option>@foreach($products as $p)<option value="{{ $p->id }}" @selected(($row['product_id']??'')==$p->id)>{{ $p->name }} ({{ $p->sku }})</option>@endforeach</select></td>
 <td><input class="form-control" type="number" step=".0001" min=".0001" name="items[{{ $i }}][quantity]" value="{{ $row['quantity']??'' }}" required></td>
-<td><input class="form-control" type="number" step=".0001" min="0" name="items[{{ $i }}][unit_cost]" value="{{ $row['unit_cost']??'' }}"></td>
+
 <td><button type="button" class="btn btn-sm btn-outline-danger remove-row">×</button></td>
 </tr>@endforeach
 </tbody></table></div></div></div>
@@ -42,13 +42,16 @@
 <script>
 const productOptions = @json($productOptions);
 let rowIndex = document.querySelectorAll('#items-table tbody tr').length;
-document.getElementById('add-row').addEventListener('click',()=>{
-  const opts='<option value="">{{ __('Select Product') }}</option>'+productOptions.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
-  document.querySelector('#items-table tbody').insertAdjacentHTML('beforeend',`<tr>
-  <td><select class="form-select" name="items[${rowIndex}][product_id]" required>${opts}</select></td>
-  <td><input class="form-control" type="number" step=".0001" min=".0001" name="items[${rowIndex}][quantity]" required></td>
-  <td><input class="form-control" type="number" step=".0001" min="0" name="items[${rowIndex}][unit_cost]"></td>
-  <td><button type="button" class="btn btn-sm btn-outline-danger remove-row">×</button></td></tr>`);
+document.getElementById('add-row').addEventListener('click', () => {
+  const row = document.createElement('tr');
+  row.innerHTML = `<td><select class="form-select" name="items[${rowIndex}][product_id]" required></select></td>
+    <td><input class="form-control" type="number" step=".0001" min=".0001" name="items[${rowIndex}][quantity]" required></td>
+    <td><button type="button" class="btn btn-sm btn-outline-danger remove-row">×</button></td>`;
+  const select = row.querySelector('select');
+  // Use DOM options (not interpolated HTML) so product names cannot inject markup.
+  select.add(new Option(@json(__('Select Product')), ''));
+  productOptions.forEach(product => select.add(new Option(product.label, String(product.id))));
+  document.querySelector('#items-table tbody').appendChild(row);
   rowIndex++;
 });
 document.addEventListener('click',e=>{if(e.target.classList.contains('remove-row') && document.querySelectorAll('#items-table tbody tr').length>1)e.target.closest('tr').remove();});

@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', __('Seller Dashboard'))
-@section('heading', __('Seller Dashboard'))
+@section('title', __('My Sales Dashboard'))
+@section('heading', __('My Sales Dashboard'))
 @section('subheading')
-    {{ __('Seller ID') }}: <strong>{{ $seller->seller_code ?? ('SEL-' . str_pad($seller->id, 5, '0', STR_PAD_LEFT)) }}</strong>
+    {{ __('User ID') }}: <strong>{{ $seller->seller_code ?? ('SEL-' . str_pad($seller->id, 5, '0', STR_PAD_LEFT)) }}</strong>
 @endsection
 
 @section('actions')
@@ -18,11 +18,13 @@
 @endsection
 
 @section('content')
-@php($currency = '৳')
-
+@php
+    $currency = '৳';
+@endphp
+<div class="erp-dashboard-v2 erp-seller-dashboard-v2">
 <div class="alert alert-primary border-0 shadow-sm d-flex flex-wrap justify-content-between gap-2 align-items-center">
     <div>
-        <strong>{{ __('Daily Seller Account') }}</strong>
+        <strong>{{ __('My Daily Sales Account') }}</strong>
         <div class="small text-muted">{{ __('Only your transactions for today are shown.') }}</div>
     </div>
     <div class="fw-semibold"><i class="bi bi-calendar3 me-1"></i>{{ \Carbon\Carbon::parse($date)->format('d M Y') }}</div>
@@ -57,7 +59,7 @@
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <div>
             <h2 class="h6 mb-1">{{ __('Today Transactions') }}</h2>
-            <div class="text-muted small">{{ __('Sales references, cash collection and due amounts under your Seller ID.') }}</div>
+            <div class="text-muted small">{{ __('Sales references, cash collection and due amounts under your user ID.') }}</div>
         </div>
         <span class="badge text-bg-light">{{ $totals['transaction_count'] }} {{ __('records') }}</span>
     </div>
@@ -92,4 +94,5 @@
         </table>
     </div>
 </div>
+</div>{{-- erp-seller-dashboard-v2 --}}
 @endsection

@@ -1,5 +1,4 @@
 @extends('layouts.app')
-<<<<<<< HEAD
 
 @php
     $editing = (bool) $purchase;
@@ -7,7 +6,9 @@
     $productOptions = $products
         ->map(fn ($product) => [
             'id'    => $product->id,
-            'name'  => $product->name,
+            'name'  => $product->display_name,
+            'track_batch' => (bool) $product->track_batch,
+            'track_expiry' => (bool) $product->track_expiry,
             'price' => (float) $product->purchase_price,
         ])
         ->values()
@@ -20,6 +21,10 @@
             ?->map(fn ($item) => [
                 'product_id'     => $item->product_id,
                 'quantity'       => (float) $item->quantity,
+                'free_quantity'  => (float) ($item->free_quantity ?? 0),
+                'batch_no'       => $item->batch_no,
+                'manufactured_at'=> $item->manufactured_at?->format('Y-m-d'),
+                'expiry_date'    => $item->expiry_date?->format('Y-m-d'),
                 'unit_cost'      => (float) $item->unit_cost,
                 'discount_type'  => $item->discount_type ?: 'fixed',
                 'discount_value' => $item->discount_value !== null ? (float) $item->discount_value : (float) $item->discount,
@@ -114,6 +119,8 @@
                 class="form-control"
             >
         </div>
+        <div class="col-md-2"><label class="form-label">{{ __('Currency') }}</label><select name="currency_code" class="form-select" required>@foreach($currencies as $currency)<option value="{{ $currency->code }}" @selected(old('currency_code',$purchase?->currency_code ?? 'BDT')===$currency->code)>{{ $currency->code }}</option>@endforeach</select></div>
+        <div class="col-md-2"><label class="form-label">{{ __('Exchange Rate') }}</label><input type="number" step="0.000001" min="0.000001" name="exchange_rate" value="{{ old('exchange_rate',$purchase?->exchange_rate ?? 1) }}" class="form-control" required></div>
 
         <div class="col-md-4">
             <label class="form-label">{{ __('Supplier Invoice') }}</label>
@@ -138,6 +145,10 @@
                 <tr>
                     <th style="min-width:210px">{{ __('Product') }}</th>
                     <th style="min-width:100px">{{ __('Qty') }}</th>
+                    <th style="min-width:100px">{{ __('Free Qty') }}</th>
+                    <th style="min-width:120px">{{ __('Batch No') }}</th>
+                    <th style="min-width:130px">{{ __('Manufactured') }}</th>
+                    <th style="min-width:130px">{{ __('Expiry') }}</th>
                     <th style="min-width:110px">{{ __('Unit Cost') }}</th>
                     <th style="min-width:135px">{{ __('Discount Type') }}</th>
                     <th style="min-width:120px">{{ __('Discount Value') }}</th>
@@ -247,92 +258,10 @@
 </form>
 @endsection
 
-=======
-@php
-    $editing=(bool)$purchase;
-    $itemTaxSaved=$purchase?->items?->sum(fn($i)=>(float)$i->tax) ?? 0;
-    $invoiceTax=max(0,(float)($purchase?->tax ?? 0)-$itemTaxSaved);
-    $productOptions = $products->map(fn($p) => [
-        'id' => $p->id,
-        'name' => $p->name,
-        'sku' => $p->sku,
-        'price' => (float) $p->purchase_price,
-        'unit' => $p->unit?->short_name,
-    ])->values()->all();
-    $existingItems = old('items');
-    if ($existingItems === null) {
-        $existingItems = $purchase?->items?->map(fn($i) => [
-            'product_id' => $i->product_id,
-            'quantity' => (float) $i->quantity,
-            'unit_cost' => (float) $i->unit_cost,
-            'discount' => (float) $i->discount,
-            'tax' => (float) $i->tax,
-        ])->values()->all() ?? [];
-    }
-@endphp
-@section('title',$editing?'Edit Purchase':'New Purchase')
-@section('heading',$editing?'Edit Purchase':'New Purchase')
-@section('actions')<a class="btn btn-light border btn-sm" href="{{ route('purchases.index') }}"><i class="bi bi-arrow-left me-1"></i> Back</a>@endsection
-@section('content')
-<div class="erp-breadcrumbs mb-3"><a href="{{ route('dashboard') }}">Dashboard</a><i class="bi bi-chevron-right"></i><a href="{{ route('purchases.index') }}">Purchases</a><i class="bi bi-chevron-right"></i><span>{{ $editing?'Edit':'Create' }}</span></div>
-
-<form method="POST" action="{{ $editing?route('purchases.update',$purchase):route('purchases.store') }}" id="purchase-form">@csrf @if($editing)@method('PUT')@endif
-<div class="erp-form-shell">
-    <div>
-        <section class="erp-form-card">
-            <div class="erp-form-card-head"><h2 class="erp-form-card-title"><i class="bi bi-building me-2 text-primary"></i>Purchase Information</h2>@if($editing)<span class="erp-status-pill draft">{{ $purchase->purchase_no }}</span>@endif</div>
-            <div class="erp-form-card-body">
-                <div class="erp-form-grid">
-                    <div class="span-2"><label class="erp-field-label required">Supplier</label><select name="supplier_id" class="form-select" required><option value="">Select supplier</option>@foreach($suppliers as $supplier)<option value="{{ $supplier->id }}" @selected(old('supplier_id',$purchase?->supplier_id)==$supplier->id)>{{ $supplier->name }}{{ $supplier->code ? ' — '.$supplier->code : '' }}</option>@endforeach</select></div>
-                    <div><label class="erp-field-label required">Warehouse</label><select name="warehouse_id" class="form-select" required>@foreach($warehouses as $warehouse)<option value="{{ $warehouse->id }}" @selected(old('warehouse_id',$purchase?->warehouse_id)==$warehouse->id)>{{ $warehouse->name }}</option>@endforeach</select></div>
-                    <div><label class="erp-field-label">Supplier Invoice</label><input name="supplier_invoice_no" value="{{ old('supplier_invoice_no',$purchase?->supplier_invoice_no) }}" class="form-control" placeholder="Supplier reference"></div>
-                    <div><label class="erp-field-label required">Purchase Date</label><input type="date" name="purchase_date" value="{{ old('purchase_date',$purchase?->purchase_date?->format('Y-m-d')??now()->toDateString()) }}" class="form-control" required></div>
-                    <div><label class="erp-field-label">Due Date</label><input type="date" name="due_date" value="{{ old('due_date',$purchase?->due_date?->format('Y-m-d')) }}" class="form-control"></div>
-                    <div class="span-2"><label class="erp-field-label">Notes</label><input name="notes" value="{{ old('notes',$purchase?->notes) }}" class="form-control" placeholder="Optional purchase note"></div>
-                </div>
-            </div>
-        </section>
-
-        <section class="erp-form-card erp-items-card">
-            <div class="erp-form-card-head"><h2 class="erp-form-card-title"><i class="bi bi-box-seam me-2 text-primary"></i>Purchase Items</h2><button type="button" id="add-item" class="btn btn-outline-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Item</button></div>
-            <div class="table-responsive">
-                <table class="table erp-item-table mb-0" id="items-table">
-                    <thead><tr><th style="width:32%">Product</th><th>Qty</th><th>Unit Cost</th><th>Discount</th><th>Tax Amount</th><th class="money">Line Total</th><th></th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </section>
-    </div>
-
-    <aside>
-        <section class="erp-form-card erp-summary-card">
-            <div class="erp-form-card-head"><h2 class="erp-form-card-title"><i class="bi bi-calculator me-2 text-primary"></i>Invoice Summary</h2></div>
-            <div class="erp-form-card-body">
-                <div class="mb-3"><label class="erp-field-label">Invoice Discount</label><input id="invoice-discount" name="discount" type="number" step="0.01" min="0" value="{{ old('discount',$purchase?->discount??0) }}" class="form-control"></div>
-                <div class="mb-3"><label class="erp-field-label">Invoice Tax</label><input id="invoice-tax" name="tax" type="number" step="0.01" min="0" value="{{ old('tax',$invoiceTax) }}" class="form-control"></div>
-                <div class="row g-2 mb-3"><div class="col-6"><label class="erp-field-label">Shipping</label><input id="shipping" name="shipping" type="number" step="0.01" min="0" value="{{ old('shipping',$purchase?->shipping??0) }}" class="form-control"></div><div class="col-6"><label class="erp-field-label">Other Cost</label><input id="other-cost" name="other_cost" type="number" step="0.01" min="0" value="{{ old('other_cost',$purchase?->other_cost??0) }}" class="form-control"></div></div>
-                <ul class="erp-summary-list">
-                    <li><span>Item Subtotal</span><strong id="summary-subtotal">৳ 0.00</strong></li>
-                    <li><span>Item Tax</span><strong id="summary-item-tax">৳ 0.00</strong></li>
-                    <li><span>Invoice Discount</span><strong id="summary-discount">৳ 0.00</strong></li>
-                    <li><span>Invoice Tax</span><strong id="summary-invoice-tax">৳ 0.00</strong></li>
-                    <li><span>Shipping + Other</span><strong id="summary-extra">৳ 0.00</strong></li>
-                    <li class="total"><span>Grand Total</span><strong id="summary-total">৳ 0.00</strong></li>
-                </ul>
-                <div class="erp-summary-note"><i class="bi bi-info-circle me-1"></i>Saving creates a <strong>Draft</strong>. Stock, supplier ledger and accounting are updated only after the purchase is posted.</div>
-                <div class="erp-form-actions"><a href="{{ route('purchases.index') }}" class="btn btn-light border">Cancel</a><button class="btn btn-primary"><i class="bi bi-save me-1"></i>{{ $editing?'Update Draft':'Save Draft' }}</button></div>
-            </div>
-        </section>
-    </aside>
-</div>
-</form>
-@endsection
->>>>>>> a903df116cf65a53178fd1bbf9f2abb17c72c5a5
 @push('scripts')
 <script>
 const products = @json($productOptions);
 const existing = @json($existingItems);
-<<<<<<< HEAD
 const discountLabels = @json($discountLabels);
 let idx = 0;
 
@@ -456,6 +385,10 @@ function row(data = {}) {
             <input class="form-control qty" type="number" step="0.0001" min="0.0001"
                    name="items[${idx}][quantity]" value="${data.quantity ?? 1}" required>
         </td>
+        <td><input class="form-control" type="number" step="0.0001" min="0" name="items[${idx}][free_quantity]" value="${data.free_quantity ?? 0}"></td>
+        <td><input class="form-control batch-no" name="items[${idx}][batch_no]" value="${escapeHtml(data.batch_no ?? '')}" placeholder="{{ __('Optional') }}"></td>
+        <td><input class="form-control" type="date" name="items[${idx}][manufactured_at]" value="${data.manufactured_at ?? ''}"></td>
+        <td><input class="form-control expiry-date" type="date" name="items[${idx}][expiry_date]" value="${data.expiry_date ?? ''}"></td>
         <td>
             <input class="form-control cost" type="number" step="0.0001" min="0"
                    name="items[${idx}][unit_cost]" value="${data.unit_cost ?? 0}" required>
@@ -491,6 +424,11 @@ function row(data = {}) {
 
         if (selectedProduct) {
             tr.querySelector('.cost').value = selectedProduct.price;
+            const batchInput = tr.querySelector('.batch-no');
+            const expiryInput = tr.querySelector('.expiry-date');
+            batchInput.required = Boolean(selectedProduct.track_batch);
+            expiryInput.required = Boolean(selectedProduct.track_expiry);
+            batchInput.placeholder = selectedProduct.track_batch ? '{{ __('Required') }}' : '{{ __('Optional') }}';
         }
 
         recalculateRow(tr);
@@ -508,6 +446,7 @@ function row(data = {}) {
     });
 
     document.querySelector('#items-table tbody').appendChild(tr);
+    tr.querySelector('.product').dispatchEvent(new Event('change'));
     recalculateRow(tr);
     idx++;
 }
@@ -519,13 +458,5 @@ document.querySelectorAll('.invoice-calc').forEach(input => {
 
 (existing.length ? existing : [{}]).forEach(row);
 recalculateSummary();
-=======
-let idx=0;
-const n=v=>Number.parseFloat(v||0)||0;
-const money=v=>'৳ '+n(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-function calculate(){let subtotal=0,itemTax=0;document.querySelectorAll('#items-table tbody tr').forEach(tr=>{const qty=n(tr.querySelector('.qty')?.value),cost=n(tr.querySelector('.cost')?.value),discount=n(tr.querySelector('.item-discount')?.value),tax=n(tr.querySelector('.item-tax')?.value);subtotal+=qty*cost;itemTax+=tax;const line=Math.max(0,qty*cost-discount+tax);tr.querySelector('.line-total').textContent=money(line);});const discount=n(document.getElementById('invoice-discount').value),invoiceTax=n(document.getElementById('invoice-tax').value),shipping=n(document.getElementById('shipping').value),other=n(document.getElementById('other-cost').value);const grand=Math.max(0,subtotal-discount+itemTax+invoiceTax+shipping+other);document.getElementById('summary-subtotal').textContent=money(subtotal);document.getElementById('summary-item-tax').textContent=money(itemTax);document.getElementById('summary-discount').textContent=money(discount);document.getElementById('summary-invoice-tax').textContent=money(invoiceTax);document.getElementById('summary-extra').textContent=money(shipping+other);document.getElementById('summary-total').textContent=money(grand);}
-function row(data={}){const current=idx++;const opts=products.map(p=>`<option value="${p.id}" ${String(data.product_id)==String(p.id)?'selected':''}>${p.name} (${p.sku})</option>`).join('');const tr=document.createElement('tr');tr.innerHTML=`<td><select class="form-select erp-item-product product" name="items[${current}][product_id]" required><option value="">Select product</option>${opts}</select><div class="text-muted mt-1 product-meta" style="font-size:8px"></div></td><td><input class="form-control qty" type="number" step="0.0001" min="0.0001" name="items[${current}][quantity]" value="${data.quantity??1}" required></td><td><input class="form-control cost" type="number" step="0.0001" min="0" name="items[${current}][unit_cost]" value="${data.unit_cost??0}" required></td><td><input class="form-control item-discount" type="number" step="0.01" min="0" name="items[${current}][discount]" value="${data.discount??0}"></td><td><input class="form-control item-tax" type="number" step="0.01" min="0" name="items[${current}][tax]" value="${data.tax??0}"></td><td class="line-total erp-line-total">৳ 0.00</td><td><button type="button" class="erp-action-btn danger remove" title="Remove"><i class="bi bi-trash"></i></button></td>`;const productSelect=tr.querySelector('.product');const setMeta=()=>{const p=products.find(x=>String(x.id)===productSelect.value);tr.querySelector('.product-meta').textContent=p?(p.unit?`Unit: ${p.unit}`:''):'';return p;};productSelect.addEventListener('change',()=>{const p=setMeta();if(p)tr.querySelector('.cost').value=p.price;calculate();});tr.querySelectorAll('input').forEach(input=>input.addEventListener('input',calculate));tr.querySelector('.remove').onclick=()=>{tr.remove();calculate();};document.querySelector('#items-table tbody').appendChild(tr);setMeta();calculate();}
-document.getElementById('add-item').onclick=()=>row();['invoice-discount','invoice-tax','shipping','other-cost'].forEach(id=>document.getElementById(id).addEventListener('input',calculate));(existing.length?existing:[{}]).forEach(row);calculate();
->>>>>>> a903df116cf65a53178fd1bbf9f2abb17c72c5a5
 </script>
 @endpush

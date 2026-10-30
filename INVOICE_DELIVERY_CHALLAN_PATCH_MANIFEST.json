@@ -1,0 +1,23 @@
+{
+  "release": "2026-10-30",
+  "baseline": "afrin_traders_erp_sales_purchase_management_fixed_2026_10_30.zip",
+  "files": {
+    "app/Http/Controllers/ProductDeliveryController.php": "34419636a19c0286de7ab5b524333751330e84d2407e7b8eb8df0abd26067c53",
+    "app/Http/Controllers/SaleController.php": "56157a27b17960b8b3d653a678ba6a3339d7634229858f8744cfc2da8e8bc184",
+    "app/Http/Controllers/PurchaseController.php": "8b4c627a0f6385f0f017523b9829601ae32982808bbd54a7c4d868632b2ee063",
+    "app/Services/Commercial/DeliveryChallanAuditService.php": "806ba84042e28aecb1bae9251d9c724b0ac3d23b788304e9ae44b2bf69083680",
+    "resources/views/product_deliveries/print.blade.php": "54ec9de81258dc3eaf22a6aa6958bc6a95887946d90948d81c92be9d51991492",
+    "resources/views/product_deliveries/show.blade.php": "48c6daf73afbbd99ce5b7b9d41e70ad37c9a5cb9c91e14ff29e2218af2f40440",
+    "resources/views/product_deliveries/index.blade.php": "d069cef4ca582fc0c445275256091a3ab18d1185290dc8e4877b96dbf0d161c3",
+    "resources/views/sales/challan.blade.php": "8cee8ff7cabd4db8525083c37c2c0a0d9a432471105be46cb365078946c06701",
+    "resources/views/sales/memo.blade.php": "ef629fe3f4d1287ac3ab744ae0e7c925b27f3031c39c2ee594d7b4f5d286c119",
+    "resources/views/sales/show.blade.php": "ef9975bbbf712d22109474c4c3387c78275eb28a564a756d23a127078317f52b",
+    "resources/views/purchases/invoice.blade.php": "91df3c9b86af6b269ee9af7dc94980786ed2ebe9ba53dc307c2849e7448cfb01",
+    "resources/views/purchases/show.blade.php": "a4560aea2da7be66218e941fb2173065bc0e0b174e6a23024a58d76ba0543b79",
+    "routes/web.php": "719dc4aacfdaff520d237a45191758c07d81a03fdb280cf86abc83de7abd6089",
+    "routes/console.php": "8a903f8aa45d462e3d58f9c8f84c2519db6be0fa17c3c2d7b4a2ada4503bc64d",
+    "tests/Feature/InvoiceDeliveryChallanRegressionTest.php": "d38bd6ff2df0cf1c637300d8abc54f38eaf8bbfb77d75a0aa09395027af405b6",
+    "scripts/verify_invoice_delivery_patch.php": "5edd1009a5bd28f99646e64cfe1d419bff3b1a9b414f714e3ebf14856123c19c",
+    "INVOICE_DELIVERY_CHALLAN_QA_RELEASE_2026_10_30.md": "0ebbd86ff3b5a3bc803848976e0dd934f28427a7cdf44074c2e240bf4bd715e4"
+  }
+}

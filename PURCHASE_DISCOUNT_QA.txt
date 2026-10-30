@@ -1,0 +1,63 @@
+M/S AFRIN TRADERS ERP
+PURCHASE DISCOUNT TYPES + LIVE SUBTOTAL QA
+Date: 2026-09-30
+
+SCOPE
+- Align /purchases/create and /purchases/{id}/edit with the Sales line discount workflow.
+- Fixed Amount and Percentage discount types.
+- Live per-line Discount Amount and Final Subtotal.
+- Live purchase subtotal/discount/tax/invoice total preview.
+- Server-side validation and accounting totals aligned with the browser preview.
+
+CALCULATION CHECK
+Unit Cost: 1000.00
+Quantity: 2
+Subtotal Before Discount: 2000.00
+10% Percentage Discount: 200.00
+Final Subtotal: 1800.00
+Fixed Discount 200.00: Final Subtotal 1800.00
+
+GUARDS
+- Percentage discount > 100% is rejected.
+- Fixed discount > product subtotal is rejected.
+- Calculated discount amount may not exceed product subtotal.
+- Existing purchase item discounts migrate as Fixed Amount.
+
+ACCOUNTING FIX
+Previous PurchaseService grand total did not subtract item-level discounts.
+New formula:
+  Subtotal Before Discount
+- Item Discount
+- Invoice Discount
++ Item Tax
++ Invoice Tax
++ Shipping
++ Other Cost
+= Purchase Grand Total
+
+EDIT SAFETY
+purchase.tax stores invoice tax + item tax. The Purchase edit form now derives and displays only invoice-level tax, preventing item tax from being counted twice when a draft is edited.
+
+VALIDATION RESULTS
+- Calculation smoke test: PASS
+- Laravel Blade compiler: 84 views checked, 0 compile/PHP syntax errors
+- Project PHP lint: 150 PHP files checked, 0 syntax errors
+- English JSON: valid
+- Bangla JSON: valid
+
+DATABASE CHANGE
+Migration:
+  2026_09_30_004000_add_discount_type_to_purchase_items.php
+Adds:
+  purchase_items.discount_type VARCHAR(20), default fixed
+  purchase_items.discount_value DECIMAL(18,4), default 0
+Existing purchase_items.discount remains the calculated money amount for compatibility.
+
+DEPLOYMENT
+Preferred:
+  php artisan migrate --force
+  php artisan view:clear
+  php artisan optimize:clear
+
+Without terminal access:
+  Import PURCHASE_DISCOUNT_MYSQL_PATCH.sql in phpMyAdmin.

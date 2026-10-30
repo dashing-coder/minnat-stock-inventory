@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\Product;
+use App\Models\ProductDelivery;
+use App\Models\ProductDeliveryItem;
 use App\Models\Sale;
 use App\Models\Setting;
 use App\Models\Warehouse;
 use App\Services\Commercial\SaleService;
 use App\Support\AmountInWords;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class SaleController extends Controller
@@ -49,7 +52,9 @@ class SaleController extends Controller
     {
         $this->enforceSellerDate($request, 'sale_date');
 
-        $sale = $this->service->create($request->validate($this->rules()));
+        $data = $request->validate($this->rules());
+        if (empty($data['due_date']) && !empty($data['customer_id'])) { $terms=(int)(Customer::find($data['customer_id'])?->payment_terms_days ?? 0); if($terms>0) $data['due_date']=Carbon::parse($data['sale_date'])->addDays($terms)->toDateString(); }
+        $sale = $this->service->create($data);
 
         return redirect()->route('sales.show', $sale);
     }
@@ -60,6 +65,48 @@ class SaleController extends Controller
         $sale->load('customer', 'warehouse', 'items.product.unit', 'payments', 'creator');
 
         return view('sales.show', compact('sale'));
+    }
+
+    /**
+     * Printable delivery challan generated from the sale.
+     */
+    public function challan(Sale $sale)
+    {
+        $this->enforceSellerOwnership($sale);
+        $sale->load('customer', 'warehouse', 'items.product.unit', 'creator');
+
+        $settings = Setting::query()
+            ->whereIn('key', [
+                'company_name',
+                'company_name_bn',
+                'company_owner',
+                'company_owner_bn',
+                'company_phone',
+                'company_address',
+                'company_address_bn',
+            ])
+            ->pluck('value', 'key');
+
+        // A posted sale is an accounting/stock event, not evidence that goods were dispatched.
+        // Only posted physical-delivery records are certified on an actual challan.
+        $postedDeliveries = ProductDelivery::query()
+            ->where('sale_id', $sale->id)
+            ->where('delivery_type', 'sale')
+            ->where('status', 'posted')
+            ->orderBy('delivery_date')->orderBy('id')
+            ->get(['id', 'delivery_no', 'delivery_date']);
+        $deliveryTotals = [];
+        if ($postedDeliveries->isNotEmpty()) {
+            $deliveryTotals = ProductDeliveryItem::query()
+                ->whereIn('product_delivery_id', $postedDeliveries->pluck('id'))
+                ->selectRaw('source_item_id, SUM(quantity) AS delivered_quantity')
+                ->groupBy('source_item_id')
+                ->pluck('delivered_quantity', 'source_item_id')->all();
+        }
+        $hasPostedDelivery = $postedDeliveries->isNotEmpty();
+        $challanNo = 'CHL-' . str_pad((string) $sale->id, 6, '0', STR_PAD_LEFT);
+
+        return view('sales.challan', compact('sale', 'settings', 'challanNo', 'hasPostedDelivery', 'postedDeliveries', 'deliveryTotals'));
     }
 
     /**
@@ -100,7 +147,7 @@ class SaleController extends Controller
             'grand_payable' => $grandPayable,
             'advance' => $advance,
             'balance' => $balance,
-            'amount_in_words' => AmountInWords::taka($grandPayable, $locale),
+            'amount_in_words' => strtoupper((string) ($sale->currency_code ?? 'BDT')) === 'BDT' ? AmountInWords::taka($currentBill, $locale) : null,
         ];
 
         return view('sales.memo', compact('sale', 'settings', 'memo'));
@@ -121,7 +168,9 @@ class SaleController extends Controller
         $this->denySalesExecutiveEdit();
         $this->enforceSellerOwnership($sale);
         $this->enforceSellerDate($request, 'sale_date');
-        $sale = $this->service->update($sale, $request->validate($this->rules()));
+        $data = $request->validate($this->rules());
+        if (empty($data['due_date']) && !empty($data['customer_id'])) { $terms=(int)(Customer::find($data['customer_id'])?->payment_terms_days ?? 0); if($terms>0) $data['due_date']=Carbon::parse($data['sale_date'])->addDays($terms)->toDateString(); }
+        $sale = $this->service->update($sale, $data);
 
         return redirect()->route('sales.show', $sale)->with('success', __('Sale updated.'));
     }
@@ -190,7 +239,8 @@ class SaleController extends Controller
         return [
             'customers' => Customer::where('is_active', true)->orderBy('name')->get(),
             'warehouses' => Warehouse::where('is_active', true)->get(),
-            'products' => Product::with(['unit', 'warehouseStocks'])->where('is_active', true)->orderBy('name')->get(),
+            'products' => Product::with(['unit', 'parentProduct', 'warehouseStocks'])->where('is_active', true)->orderBy('name')->orderBy('variant_name')->get(),
+            'currencies' => \Illuminate\Support\Facades\DB::table('currencies')->where('is_active',1)->orderByDesc('is_base')->orderBy('code')->get(),
         ];
     }
 
@@ -201,6 +251,8 @@ class SaleController extends Controller
             'warehouse_id' => 'required|exists:warehouses,id',
             'sale_date' => 'required|date',
             'due_date' => 'nullable|date',
+            'currency_code' => 'required|string|max:10|exists:currencies,code',
+            'exchange_rate' => 'required|numeric|gt:0',
             'discount' => 'nullable|numeric|min:0',
             'tax' => 'nullable|numeric|min:0',
             'shipping' => 'nullable|numeric|min:0',
@@ -209,8 +261,10 @@ class SaleController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|gt:0',
+            'items.*.free_quantity' => 'nullable|numeric|min:0',
             'items.*.bundle_quantity' => 'nullable|numeric|min:0',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.price_type' => 'nullable|in:retail,wholesale,special',
             'items.*.discount_type' => 'required|in:fixed,percentage',
             'items.*.discount_value' => 'nullable|numeric|min:0',
             'items.*.tax' => 'nullable|numeric|min:0',

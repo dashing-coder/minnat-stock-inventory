@@ -1,4 +1,0 @@
-@extends('layouts.app')
-@section('title','Payroll') @section('heading','Payroll Runs')
-@section('actions')@can('payroll.create')<a href="{{ route('payrolls.create') }}" class="btn btn-primary">Generate Payroll</a>@endcan@endsection
-@section('content')<div class="card"><table class="table mb-0"><thead><tr><th>No</th><th>Period</th><th>Status</th><th class="money">Gross</th><th class="money">Deduction</th><th class="money">Net</th></tr></thead><tbody>@forelse($rows as $r)<tr><td><a href="{{ route('payrolls.show',$r) }}">{{ $r->payroll_no }}</a></td><td>{{ $r->period }}</td><td>{{ $r->status }}</td><td class="money">{{ number_format($r->gross_total,2) }}</td><td class="money">{{ number_format($r->deduction_total,2) }}</td><td class="money">{{ number_format($r->net_total,2) }}</td></tr>@empty<tr><td colspan="6">No payroll runs.</td></tr>@endforelse</tbody></table></div>{{ $rows->links() }}@endsection
